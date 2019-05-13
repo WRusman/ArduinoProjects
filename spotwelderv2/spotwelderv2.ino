@@ -22,7 +22,7 @@
 #include <Encoder.h>
 #define ENCODER_OPTIMIZE_INTERRUPTS
 
-const int rs = 12, en = 11, d4 = 10, d5 = 9, d6 = 4, d7 = 5, trig = 7, relay = 8, rBut = 6, rClk = 3, rData = 2 ;
+const int rs = 12, en = 11, d4 = 10, d5 = 9, d6 = 4, d7 = 5, trig = 7, relay = 8, statusLed = 13, rBut = 6, rClk = 3, rData = 2 ;
 int triggerButton, triggerState, prevTriggerState, encBuffer ,menuButton, menuState, prevMenuState, timer, pulses, eeAddress = 0;
 char buff[10];
 long rPosition  = -999, rNewPosition;
@@ -31,9 +31,10 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 Encoder knob(rClk, rData);
 
 void setup() {
+  pinMode(rBut,INPUT_PULLUP);
   pinMode(trig,INPUT);
   pinMode(relay,OUTPUT);
-  pinMode(rBut,INPUT_PULLUP);
+  pinMode(statusLed,OUTPUT);
   EEPROM.get(eeAddress, timer);
   if ((timer < 50) or (timer > 1000)){
     timer = 500;
@@ -47,7 +48,7 @@ void setup() {
   }
   lcd.begin(16, 2);
   lcd.setCursor(0,0);
-  lcd.print("MaakPuntlas v0.2");
+  lcd.print("MaakPuntlas v0.3");
   delay(2000);
   lcd.setCursor(0,0);
   lcd.print("Pulselength:    ");
@@ -91,8 +92,10 @@ void weld() {
   if (triggerButton == 1){
     for (int x=1; x <= pulses;x++){
       digitalWrite(relay,HIGH);
+      digitalWrite(statusLed,HIGH);
       delay(timer);
       digitalWrite(relay,LOW);
+      digitalWrite(statusLed,LOW);
       delay(timer);
     }
     delay(500);
