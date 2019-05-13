@@ -13,6 +13,7 @@ P MGS-TYPE SPARE DATA-ID  DATA-VALUE
 #ifndef OpenTherm_h
 #define OpenTherm_h
 
+#include <stdint.h>
 #include <Arduino.h>
 
 enum OpenThermResponseStatus {
@@ -22,10 +23,23 @@ enum OpenThermResponseStatus {
 	TIMEOUT
 };
 
-enum OpenThermRequestType {
-	READ,
-	WRITE
+
+enum OpenThermMessageType {
+	/*  Master to Slave */
+	READ_DATA       = B000,
+	READ            = READ_DATA, // for backwared compatibility
+	WRITE_DATA      = B001,
+	WRITE           = WRITE_DATA, // for backwared compatibility
+	INVALID_DATA    = B010,
+	RESERVED        = B011,
+	/* Slave to Master */
+	READ_ACK        = B100,
+	WRITE_ACK       = B101,
+	DATA_INVALID    = B110,
+	UNKNOWN_DATA_ID = B111
 };
+
+typedef OpenThermMessageType OpenThermRequestType; // for backwared compatibility
 
 enum OpenThermMessageID {
 	Status, // flag8 / flag8  Master and Slave Status flags. 
@@ -100,9 +114,9 @@ class OpenTherm
 {
 private:
 	const int inPin;
-	const int outPin;	
-
-	volatile OpenThermStatus status;
+	const int outPin;
+    const bool isSlave;
+	
 	volatile unsigned long response;
 	volatile OpenThermResponseStatus responseStatus;
 	volatile unsigned long responseTimestamp;
@@ -113,36 +127,47 @@ private:
 	void setIdleState();	
 	void activateBoiler();
 
-	void sendBit(bool high);
-	bool parity(unsigned long frame);
-	bool isValidResponse(unsigned long response);
-	void(*handleInterruptCallback)();
-	void(*processResponseCallback)(unsigned long, OpenThermResponseStatus);
+    void sendBit(bool high);    
+    void(*handleInterruptCallback)();
+    void(*processResponseCallback)(unsigned long, OpenThermResponseStatus);
 public:	
-	OpenTherm(int inPin = 4, int outPin = 5);
+    volatile OpenThermStatus status;
+	OpenTherm(int inPin = 4, int outPin = 5, bool isSlave = false);
 	void begin(void(*handleInterruptCallback)(void));
 	void begin(void(*handleInterruptCallback)(void), void(*processResponseCallback)(unsigned long, OpenThermResponseStatus));
 	bool isReady();
 	unsigned long sendRequest(unsigned long request);
+    bool sendResponse(unsigned long request);
 	bool sendRequestAync(unsigned long request);
-	unsigned long buildRequest(OpenThermRequestType type, OpenThermMessageID id, unsigned int data);
+	unsigned long buildRequest(OpenThermMessageType type, OpenThermMessageID id, unsigned int data);
+    unsigned long buildResponse(OpenThermMessageType type, OpenThermMessageID id, unsigned int data);
 	OpenThermResponseStatus getLastResponseStatus();
+	const char *statusToString(OpenThermResponseStatus status);
 	void handleInterrupt();	
 	void process();
 	void end();
 
-	//building requests
+    bool parity(unsigned long frame);
+	OpenThermMessageType getMessageType(unsigned long message);
+    OpenThermMessageID getDataID(unsigned long frame);
+	const char *messageTypeToString(OpenThermMessageType message_type);
+    bool isValidRequest(unsigned long request);
+    bool isValidResponse(unsigned long response);
+
+	//requests
 	unsigned long buildSetBoilerStatusRequest(bool enableCentralHeating, bool enableHotWater = false, bool enableCooling = false, bool enableOutsideTemperatureCompensation = false, bool enableCentralHeating2 = false);
 	unsigned long buildSetBoilerTemperatureRequest(float temperature);
-	unsigned long buildGetBoilerTemperatureRequest();
+	unsigned long buildGetBoilerTemperatureRequest();    
 
-	//parsing responses
+	//responses    
 	bool isFault(unsigned long response);
-	bool isCentralHeatingEnabled(unsigned long response);
-	bool isHotWaterEnabled(unsigned long response);
+	bool isCentralHeatingActive(unsigned long response);
+	bool isHotWaterActive(unsigned long response);
 	bool isFlameOn(unsigned long response);
-	bool isCoolingEnabled(unsigned long response);
-	bool isDiagnostic(unsigned long response);	
+	bool isCoolingActive(unsigned long response);
+	bool isDiagnostic(unsigned long response);
+	uint16_t getUInt(const unsigned long response) const;
+	float getFloat(const unsigned long response) const;
 	float getTemperature(unsigned long response);
 	unsigned int temperatureToData(float temperature);
 

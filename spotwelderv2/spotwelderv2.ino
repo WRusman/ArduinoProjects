@@ -23,10 +23,9 @@
 #define ENCODER_OPTIMIZE_INTERRUPTS
 
 const int rs = 12, en = 11, d4 = 10, d5 = 9, d6 = 4, d7 = 5, trig = 7, relay = 8, rBut = 6, rClk = 3, rData = 2 ;
-int triggerButton, triggerState, prevTriggerState, timer, pulses, encBuffer ,menuButton, menuState, prevMenuState ;
+int triggerButton, triggerState, prevTriggerState, encBuffer ,menuButton, menuState, prevMenuState, timer, pulses, eeAddress = 0;
 char buff[10];
 long rPosition  = -999, rNewPosition;
-
 
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 Encoder knob(rClk, rData);
@@ -35,15 +34,16 @@ void setup() {
   pinMode(trig,INPUT);
   pinMode(relay,OUTPUT);
   pinMode(rBut,INPUT_PULLUP);
-  EEPROM.get(0, timer);
+  EEPROM.get(eeAddress, timer);
   if ((timer < 50) or (timer > 1000)){
     timer = 500;
-    EEPROM.put(0, timer);
+    EEPROM.put(eeAddress, timer);
   }
-  EEPROM.get(1, pulses);
+  eeAddress += sizeof(int);
+  EEPROM.get(eeAddress, pulses);
   if ((pulses < 1) or (pulses > 5)){
     pulses = 3;
-    EEPROM.put(1, pulses);
+    EEPROM.put(eeAddress, pulses);
   }
   lcd.begin(16, 2);
   lcd.setCursor(0,0);
@@ -178,9 +178,10 @@ void setupMenu(){
       readMenuButton();
     }
     lcd.noBlink();
-        
-    EEPROM.put(0, timer);
-    EEPROM.put(1, pulses);
+    eeAddress = 0;        
+    EEPROM.put(eeAddress, timer);
+    eeAddress += sizeof(int);
+    EEPROM.put(eeAddress, pulses);
     delay(1000);
   }
 }
