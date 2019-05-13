@@ -23,7 +23,7 @@
 #define ENCODER_OPTIMIZE_INTERRUPTS
 
 const int rs = 12, en = 11, d4 = 10, d5 = 9, d6 = 4, d7 = 5, trig = 7, relay = 8, rBut = 6, rClk = 3, rData = 2 ;
-int triggerButton, triggerState, prevTriggerState, timer, pulses,  menuButton, menuState, prevMenuState ;
+int triggerButton, triggerState, prevTriggerState, timer, pulses, encBuffer ,menuButton, menuState, prevMenuState ;
 char buff[10];
 long rPosition  = -999, rNewPosition;
 
@@ -95,22 +95,22 @@ void weld() {
       digitalWrite(relay,LOW);
       delay(timer);
     }
-    delay(1000);
+    delay(500);
   }
 }
 
 void setupMenu(){
   if (menuButton == 1){
     menuButton = 0;
-    //delay(200);
-    knob.write (timer);
-    rPosition = timer;
+    rPosition = knob.read();
+    encBuffer = 4;
+    
     while (menuButton == 0) {
-    lcd.setCursor(12,0);
-    lcd.blink();
+      lcd.setCursor(12,0);
+      lcd.blink();
       rNewPosition = knob.read();
       if (rNewPosition != rPosition) {
-        if ((rNewPosition > 1000) or (rNewPosition < 100)) {
+        if (((rNewPosition > rPosition) and (timer == 1000)) or ((rNewPosition < rPosition) and (timer == 100))) {
           for (int y=1;y <4; y++){
             lcd.noDisplay(); 
             delay(200);
@@ -121,27 +121,35 @@ void setupMenu(){
         }
         else
         {
-          if (rNewPosition > rPosition){timer++;}else{timer--;}
+          if (rNewPosition > (rPosition)){
+            encBuffer++;
+            rPosition = rNewPosition; 
+          }
+          if (rNewPosition < (rPosition)){
+            encBuffer--;
+            rPosition = rNewPosition; 
+          }
+          if (encBuffer == 8){timer++;encBuffer=4;}
+          if (encBuffer == 0){timer--;encBuffer=4;}
           lcd.setCursor(12,0);
           sprintf(buff, "%4d", timer);
           lcd.print(buff);
+          rPosition = rNewPosition; 
         }
-        rPosition = rNewPosition; 
       }
       readMenuButton();
-      
     }
     
     menuButton = 0;
-    //delay(200);    
-    knob.write (pulses);
-    rPosition = pulses;
+    rPosition = knob.read();
+    encBuffer = 4;
+        
     while (menuButton == 0) {
     lcd.setCursor(15,1);
     lcd.blink();
       rNewPosition = knob.read();
       if (rNewPosition != rPosition) {
-        if ((rNewPosition >5 ) or (rNewPosition < 1)) {
+        if (((rNewPosition > rPosition) and (pulses == 5)) or ((rNewPosition < rPosition) and (pulses == 1))) {
           for (int y=1;y <4; y++){
             lcd.noDisplay(); 
             delay(200);
@@ -152,11 +160,20 @@ void setupMenu(){
         }
         else
         {
-          if (rNewPosition > rPosition){pulses++;}else{pulses--;}
+          if (rNewPosition > (rPosition)){
+            encBuffer++;
+            rPosition = rNewPosition; 
+          }
+          if (rNewPosition < (rPosition)){
+            encBuffer--;
+            rPosition = rNewPosition; 
+          }
+          if (encBuffer == 8){pulses++;encBuffer=4;}
+          if (encBuffer == 0){pulses--;encBuffer=4;}
           lcd.setCursor(15,1);
           lcd.print(pulses);
-         }
-        rPosition = rNewPosition; 
+          rPosition = rNewPosition; 
+        }
       }
       readMenuButton();
     }
