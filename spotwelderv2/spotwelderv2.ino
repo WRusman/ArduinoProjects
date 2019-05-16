@@ -113,7 +113,7 @@ void setupMenu(){
       lcd.blink();
       rNewPosition = knob.read();
       if (rNewPosition != rPosition) {
-        if (((rNewPosition > rPosition) and (timer == 1000)) or ((rNewPosition < rPosition) and (timer == 100))) {
+        if (((rNewPosition > rPosition) and (timer == 1000)) or ((rNewPosition < rPosition) and (timer == 50))) {
           for (int y=1;y <4; y++){
             lcd.noDisplay(); 
             delay(200);
