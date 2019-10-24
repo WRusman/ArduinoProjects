@@ -16,6 +16,8 @@ void setup() {
   
 Serial.begin(9600);
 Serial.println("start");
+Serial1.begin(9600); //This is the UART, pipes to sensors attached to board
+Serial1.println("start");
 Keyboard.begin();
 }
 
@@ -66,7 +68,7 @@ void sendClosed(){
 void loop() {
     int enableState = digitalRead(enablePin);
     if (enableState == 0) {
-      Serial.println("enabled");
+     Serial.println("enabled");
       int buttonState = digitalRead(buttonPin);
       if (buttonState == 1){
         if (maakplekState != buttonState){
@@ -85,6 +87,6 @@ void loop() {
       }
     }
     else {
-    Serial.println("disabled");
+   Serial.println("disabled");
     }  
 }
