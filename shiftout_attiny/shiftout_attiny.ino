@@ -1,12 +1,3 @@
-//**************************************************************//
-//  Name    : shiftOutCode, Hello World                         //
-//  Author  : Carlyn Maw,Tom Igoe                               //
-//  Date    : 25 Oct, 2006                                      //
-//  Version : 1.0                                               //
-//  Notes   : Code for using a 74HC595 Shift Register           //
-//          : to count from 0 to 255                            //
-//****************************************************************
-
 //Pin connected to ST_CP of 74HC595
 int latchPin = 0;
 //Pin connected to SH_CP of 74HC595
