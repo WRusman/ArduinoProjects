@@ -1,6 +1,6 @@
 # AutoConnect for ESP8266/ESP32
 
-[![arduino-library-badge](https://www.ardu-badge.com/badge/AutoConnect.svg)](https://www.ardu-badge.com/AutoConnect)
+[![arduino-library-badge](https://www.ardu-badge.com/badge/AutoConnect.svg?)](https://www.ardu-badge.com/AutoConnect)
 [![GitHub release](https://img.shields.io/github/release/Hieromon/AutoConnect.svg)](https://github.com/Hieromon/AutoConnect/releases)
 [![Build Status](https://travis-ci.org/Hieromon/AutoConnect.svg?branch=master)](https://travis-ci.org/Hieromon/AutoConnect)
 
@@ -45,6 +45,10 @@ These HTML elements that make up the user-owned screen can be easily loaded from
 <img width="32px" src="mkdocs/images/arrow_right.png" align="top">&emsp;
 <img width="30%" height="400px" src="mkdocs/images/AutoConnectAux.gif">
 
+### Quick and easy to equip the OTA update feature <sup><sub>ENHANCED w/ v1.0.0</sub></sup>
+
+You can quickly and easily equip the [OTA update feature](https://hieromon.github.io/AutoConnect/otaupdate.html) to your sketch and also you can operate the firmware update process via OTA from AutoConnect menu.
+
 ## Supported hardware
 
 Apply the [Arduino core](https://github.com/esp8266/Arduino) of the ESP8266 Community.
@@ -66,6 +70,7 @@ Alter the platform applying the [arduino-esp32](https://github.com/espressif/ard
 - Ai-Thinker NodeMCU-32S
 - Heltec WiFi Kit 32
 - M5Stack
+- Unexpected Maker TinyPICO
 - And other ESP32 modules supported by the Additional Board Manager URLs of the Arduino-IDE.
 
 ## Simple usage
@@ -96,15 +101,77 @@ Full documentation is available on https://Hieromon.github.io/AutoConnect, some 
 
 ## Change log
 
-### [0.9.8] Apr. 25, 2019
+### [1.1.2] Oct. 22, 2019
+- Fixed crash when no SSID found.
+- Fixed memory leak on destruction. (PR #144)
+
+### [1.1.1] Oct. 17, 2019
+- Fixed crash with unique_ptr deleting reference content. (issue #138)
+- Fixed disconnection request initialization missing. (issue #139)
+
+### [1.1.0] Oct. 15, 2019
+- Supports static IPs with the 'Configure new AP' menu. (issue #132)
+- Fixed compilation error that no member named 'printTo' with ArduinoJson 5.
+
+### [1.0.3] Sept. 30, 2019
+- Fixed a return of AutoConnectCredential::entries(). (issue #133)
+
+### [1.0.2] Sept. 19, 2019
+- Fixed compilation error that no member named 'success' with ArduinoJson 5. (issue #130)
+- Fixed SSID non termination. (issue #128)
+- Fixed compilation error that getBytesLength missing with ESP32. (issue #125)
+- Added #include directive restriction for EEPROM and ESP8266httpUpdate to FAQ. (issue #127)
+
+### [1.0.1] Sept. 13, 2019
+- Added a sketch for ESP32 boards that migrates credentials stored in EEPROM partition to the Preferences.
+
+### [1.0.0] Sept. 7, 2019
+- Supports Arduino core for ESP32 1.0.3.
+- Supports AutoConnectUpdate for the OTA update.
+- Supports Preferences for saving credentials with ESP32 core 1.0.3 and later. **In ESP32, the credentials stored past in EEPROM will lose**.
+- Supports AutoConnectAux::isValid function.
+- Supports the global attribute with all AutoConnectElements.
+
+### [0.9.12] Aug. 18, 2019
+- Fixed missing captive portal notifications on the newer mobile OS client. As a result of this fix, the SoftAP default IP address and gateway have been changed to **172.217.28.1**. (issue #85) 
+
+### [0.9.11] July 13, 2019
+- Supports new element as AutoConnectSytle that can insert the custom CSS into AutoConnectAux page. (PR#96)
+- Supports that `<br>` tags can now be added to each element. (PR #95)
+- Supports that able to place the checkbox label forward or backward. (PR #99)
+- Supports flicker signal output according to the status of WiFi_mode. (issue #98)
+- Supports AutoConnectAux::fetchElement function to retrieve inputted element values via a custom Web page.
+- Fixed bug in AutoConnectCredential when offset is >256. (PR #103)
+ 
+### [0.9.10] June 12, 2019
+- Fixed the unable to get AutoConnectElemets values ​​in the sketch with ESP8266 arduino core 2.5.2. (issue #90)
+- Fixed missing psram allocator. (issue #102)
+
+### [0.9.9] May 25, 2019
+- Supports ESP8266 Arduino core 2.5.2.
+- Menu text/background color can be statically customized. refer to the [Custom colorized](https://hieromon.github.io/AutoConnect/colorized.html) for the detailed specification for the menu colorizing.
+- Added ID attribute to HTML tag generated from AutoConnectText.
+- Added the enable attribute to the AutoConnectElements.
+- Fixed the input box layout collapsed.
+- Fixed that the decoration of AutoConnectButton was disabled.
+- Fixed that the value remains even after clearing the option with AutoConnectSelect.
+- Fixed that an alignment violation exception occurred when loading AutoConnectAux described by JSON with PROGMEM attribute.
+
+### [0.9.8] May 3, 2019
 - Supports ArduinoJson 6.9.1 or later.
 - Supports allocating JsonDocument buffer to PSRAM on ESP32 with ArduinoJson 6.10.0 or later.
 - Supports **operator`[]`** as a shortcut for AutoConnectAux::getElement function.
 - Supports **AutoConnectElement::as<T\>** function to easily coding for conversion from an AutoConnectElement to an actual type.
 - Supports new element type **AutoConnectFile** and built-in file uploader.
-- Supports a **format attribute** with the AutoConnectText element.
-- Fixed blank page responds with Configure new.
+- Supports a **format** attribute with the AutoConnectText element.
+- Supports a **selected** attribute with the AutoConnectSelect element.
+- Supports multiple element loading with AutoConnectAux::loadElement.
 - Changed menu labels placement in source files structure.
+- Changed API interface of AutoConnect::where function.
+- Fixed blank page responds with Configure new.
+- Fixed loading elements value missing.
+- Fixed losing elements in saveElement with ArduinoJson V6.
+- Fixed compile error with older than ESP8266 core 2.5.0.
 
 ### [0.9.7] Feb. 25, 2019
 - Fixed crash in some environments. Thank you @ageurtse

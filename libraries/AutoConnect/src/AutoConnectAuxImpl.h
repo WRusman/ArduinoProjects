@@ -134,6 +134,23 @@ AutoConnectSelectBasis& AutoConnectAux::getElement(const String& name) {
 }
 
 /**
+ * Get AutoConnectStyleBasis element.
+ * @param  name  An element name.
+ * @return A reference of AutoConnectStyle class.
+ */
+template<>
+AutoConnectStyleBasis& AutoConnectAux::getElement(const String& name) {
+  AutoConnectElement* elm = getElement(name);
+  if (elm) {
+    if (elm->typeOf() == AC_Style)
+      return *(reinterpret_cast<AutoConnectStyleBasis*>(elm));
+    else
+      AC_DBG("Element<%s> type mismatch<%d>\n", name.c_str(), elm->typeOf());
+  }
+  return reinterpret_cast<AutoConnectStyleBasis&>(_nullElement());
+}
+
+/**
  * Get AutoConnectSubmitBasis element.
  * @param  name  An element name.
  * @return A reference of AutoConnectSubmit class.
@@ -231,37 +248,6 @@ bool AutoConnectAux::_parseJson(T in) {
 }
 
 /**
- * Parse and load a JSON document which declares one of the AutoConnectElement.
- * The compiler instantiates this template according to the stored data
- * type that contains the JSON document.
- * This template also generates different parsing function calls
- * depending on the ArduinoJson version.
- * @param  T  An object type of the JSON document which must be a
- * passable object to ArduinoJson.
- * @param  in An instance of a source JSON document to load.
- */
-template<typename T>
-bool AutoConnectAux::_parseElement(T in, const String& name) {
-  ArduinoJsonBuffer jsonBuffer(AUTOCONNECT_JSONBUFFER_PRIMITIVE_SIZE);
-  JsonVariant jb;
-#if ARDUINOJSON_VERSION_MAJOR<=5
-  jb = jsonBuffer.parse(in);
-  if (!jb.success()) {
-    AC_DBG("JSON parse error\n");
-    return false;
-  }
-#else
-  DeserializationError  err = deserializeJson(jsonBuffer, in);
-  if (err) {
-    AC_DBG("Deserialize:%s\n", err.c_str());
-    return false;
-  }
-  jb = jsonBuffer.as<JsonVariant>();
-#endif
-  return _loadElement(jb, name);
-}
-
-/**
  * Get AutoConnectElementJson element.
  * @param  name  an element name.
  * @return A reference of AutoConnectElement class.
@@ -286,8 +272,9 @@ AutoConnectButtonJson& AutoConnectAux::getElement(const String& name) {
   if (elm) {
     if (elm->typeOf() == AC_Button)
       return *(reinterpret_cast<AutoConnectButtonJson*>(elm));
-    else
+    else {
       AC_DBG("Element<%s> type mismatch<%d>\n", name.c_str(), elm->typeOf());
+    }
   }
   return reinterpret_cast<AutoConnectButtonJson&>(_nullElement());
 }
@@ -303,8 +290,9 @@ AutoConnectCheckboxJson& AutoConnectAux::getElement(const String& name) {
   if (elm) {
     if (elm->typeOf() == AC_Checkbox)
       return *(reinterpret_cast<AutoConnectCheckboxJson*>(elm));
-    else
+    else {
       AC_DBG("Element<%s> type mismatch<%d>\n", name.c_str(), elm->typeOf());
+    }
   }
   return reinterpret_cast<AutoConnectCheckboxJson&>(_nullElement());
 }
@@ -320,8 +308,9 @@ AutoConnectFileJson& AutoConnectAux::getElement(const String& name) {
   if (elm) {
     if (elm->typeOf() == AC_File)
       return *(reinterpret_cast<AutoConnectFileJson*>(elm));
-    else
+    else {
       AC_DBG("Element<%s> type mismatch<%d>\n", name.c_str(), elm->typeOf());
+    }
   }
   return reinterpret_cast<AutoConnectFileJson&>(_nullElement());
 }
@@ -337,8 +326,9 @@ AutoConnectInputJson& AutoConnectAux::getElement(const String& name) {
   if (elm) {
     if (elm->typeOf() == AC_Input)
       return *(reinterpret_cast<AutoConnectInputJson*>(elm));
-    else
+    else {
       AC_DBG("Element<%s> type mismatch<%d>\n", name.c_str(), elm->typeOf());
+    }
   }
   return reinterpret_cast<AutoConnectInputJson&>(_nullElement());
 }
@@ -354,8 +344,9 @@ AutoConnectRadioJson& AutoConnectAux::getElement(const String& name) {
   if (elm) {
     if (elm->typeOf() == AC_Radio)
       return *(reinterpret_cast<AutoConnectRadioJson*>(elm));
-    else
+    else {
       AC_DBG("Element<%s> type mismatch<%d>\n", name.c_str(), elm->typeOf());
+    }
   }
   return reinterpret_cast<AutoConnectRadioJson&>(_nullElement());
 }
@@ -371,8 +362,9 @@ AutoConnectSelectJson& AutoConnectAux::getElement(const String& name) {
   if (elm) {
     if (elm->typeOf() == AC_Select)
       return *(reinterpret_cast<AutoConnectSelectJson*>(elm));
-    else
+    else {
       AC_DBG("Element<%s> type mismatch<%d>\n", name.c_str(), elm->typeOf());
+    }
   }
   return reinterpret_cast<AutoConnectSelectJson&>(_nullElement());
 }
@@ -388,8 +380,9 @@ AutoConnectSubmitJson& AutoConnectAux::getElement(const String& name) {
   if (elm) {
     if (elm->typeOf() == AC_Submit)
       return *(reinterpret_cast<AutoConnectSubmitJson*>(elm));
-    else
+    else {
       AC_DBG("Element<%s> type mismatch<%d>\n", name.c_str(), elm->typeOf());
+    }
   }
   return reinterpret_cast<AutoConnectSubmitJson&>(_nullElement());
 }
@@ -405,8 +398,9 @@ AutoConnectTextJson& AutoConnectAux::getElement(const String& name) {
   if (elm) {
     if (elm->typeOf() == AC_Text)
       return *(reinterpret_cast<AutoConnectTextJson*>(elm));
-    else
+    else {
       AC_DBG("Element<%s> type mismatch<%d>\n", name.c_str(), elm->typeOf());
+    }
   }
   return reinterpret_cast<AutoConnectTextJson&>(_nullElement());
 }

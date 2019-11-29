@@ -3,12 +3,12 @@
  * @file AutoConnectAux.h
  * @author hieromon@gmail.com
  * @version  0.9.8
- * @date 2018-03-11
+ * @date 2019-03-11
  * @copyright  MIT license.
  */
 
 #ifndef _AUTOCONNECTELEMENT_H_
-#define _AUTOCONENCTELEMENT_H_
+#define _AUTOCONNECTELEMENT_H_
 
 #include "AutoConnectElementBasis.h"
 #ifdef AUTOCONNECT_USE_JSON
@@ -21,6 +21,7 @@ using AutoConnectFile     = AutoConnectFileJson;
 using AutoConnectInput    = AutoConnectInputJson;
 using AutoConnectRadio    = AutoConnectRadioJson;
 using AutoConnectSelect   = AutoConnectSelectJson;
+using AutoConnectStyle    = AutoConnectStyleJson;
 using AutoConnectSubmit   = AutoConnectSubmitJson;
 using AutoConnectText     = AutoConnectTextJson;
 #define AUTOCONNECT_JSON_BUFFER_SIZE  256
@@ -32,6 +33,7 @@ using AutoConnectFile     = AutoConnectFileBasis;
 using AutoConnectInput    = AutoConnectInputBasis;
 using AutoConnectRadio    = AutoConnectRadioBasis;
 using AutoConnectSelect   = AutoConnectSelectBasis;
+using AutoConnectStyle    = AutoConnectStyleBasis;
 using AutoConnectSubmit   = AutoConnectSubmitBasis;
 using AutoConnectText     = AutoConnectTextBasis;
 #endif // !AUTOCONNECT_USE_JSON
@@ -49,6 +51,7 @@ using AutoConnectText     = AutoConnectTextBasis;
 #define ACRadio(n, ...)    AutoConnectRadio n(#n, ##__VA_ARGS__)
 #define ACSelect(n, ...)   AutoConnectSelect n(#n, ##__VA_ARGS__)
 #define ACSubmit(n, ...)   AutoConnectSubmit n(#n, ##__VA_ARGS__)
+#define ACStyle(n, ...)    AutoConnectStyle n(#n, ##__VA_ARGS__)
 #define ACText(n, ...)     AutoConnectText n(#n, ##__VA_ARGS__)
 
 #endif // _AUTOCONNECTELEMENT_H_

@@ -2,8 +2,8 @@
  * Implementation of AutoConnectElementBasis classes.
  * @file AutoConnectElementImpl.h
  * @author hieromon@gmail.com
- * @version  0.9.8
- * @date 2019-03-11
+ * @version  0.9.11
+ * @date 2019-06-25
  * @copyright  MIT license.
  */
 
@@ -20,12 +20,34 @@
 #include "AutoConnectElementBasis.h"
 
 /**
+ * Append post-tag accoring by the post attribute.
+ * @param  s  An original string
+ * @return    A string that appended the post tag
+ */
+const String AutoConnectElementBasis::posterior(const String& s) const {
+  String  html;
+  if (post == AC_Tag_BR)
+    html = s + String(F("<br>"));
+  else if (post == AC_Tag_P)
+    html = String("<p>") + s + String(F("</p>"));
+  else
+    html = s;
+  return html;
+}
+
+/**
  * Generate an HTML <button> element. The onclick behavior depends on
  * the code held in factionf member.
  * @return  An HTML string.
  */
 const String AutoConnectButtonBasis::toHTML(void) const {
-  return String(F("<button type=\"button\" name=\"")) + name + String(F("\" value=\"")) + value + String(F("\" onclick=\"")) + action + String("\">") + value + String(F("</button>"));
+  String  html = String("");
+
+  if (enable) {
+    html = String(F("<button type=\"button\" name=\"")) + name + String(F("\" value=\"")) + value + String(F("\" onclick=\"")) + action + String("\">") + value + String(F("</button>"));
+    html = AutoConnectElementBasis::posterior(html);
+  }
+  return html;
 }
 
 /**
@@ -37,14 +59,23 @@ const String AutoConnectButtonBasis::toHTML(void) const {
  * @return  An HTML string.
  */
 const String AutoConnectCheckboxBasis::toHTML(void) const {
-  String  html;
+  String  html = String("");
 
-  html = String(F("<input type=\"checkbox\" name=\"")) + name + String(F("\" value=\"")) + value + String("\"");
-  if (checked)
-    html += String(F(" checked"));
-  if (label.length())
-    html += String(F(" id=\"")) + name + String(F("\"><label for=\"")) + name + String("\">") + label + String(F("</label"));
-  html += String(F("><br>"));
+  if (enable) {
+    html = String(F("<input type=\"checkbox\" name=\"")) + name + String(F("\" value=\"")) + value + String("\"");
+    if (checked)
+      html += String(F(" checked"));
+    if (label.length())
+      html += String(F(" id=\"")) + name + String("\">");
+    if (label.length()) {
+      String  labelTag = String(F("<label for=\"")) + name + String(F("\">")) + label + String(F("</label>"));
+      if (labelPosition == AC_Infront)
+        html = labelTag + html;
+      else if (labelPosition == AC_Behind)
+        html += labelTag;
+    }
+    html = AutoConnectElementBasis::posterior(html);
+  }
   return html;
 }
 
@@ -58,9 +89,12 @@ const String AutoConnectCheckboxBasis::toHTML(void) const {
 const String AutoConnectFileBasis::toHTML(void) const {
   String  html = String("");
 
-  if (label.length())
-    html = String(F("<label for=\"")) + name + String(F("\">")) + label + String(F("</label>"));
-  html += String(F("<input type=\"file\" id=\"")) + name + String(F("\" name=\"")) + name + String(F("\"><br>"));
+  if (enable) {
+    if (label.length())
+      html = String(F("<label for=\"")) + name + String(F("\">")) + label + String(F("</label>"));
+    html += String(F("<input type=\"file\" id=\"")) + name + String(F("\" name=\"")) + name + String("\">");
+    html = AutoConnectElementBasis::posterior(html);
+  }
   return html;
 }
 
@@ -101,17 +135,19 @@ bool AutoConnectFileBasis::attach(const ACFile_t store) {
 const String AutoConnectInputBasis::toHTML(void) const {
   String  html = String("");
 
-  if (label.length())
-    html = String(F("<label for=\"")) + name + String("\">") + label + String(F("</label>"));
-  html += String(F("<input type=\"text\" id=\"")) + name + String(F("\" name=\"")) + name + String("\"");
-  if (pattern.length())
-    html += String(F(" pattern=\"")) + pattern + String("\"");
-  if (placeholder.length())
-    html += String(F(" placeholder=\"")) + placeholder + String("\"");
-  if (value.length())
-    html += String(F(" value=\"")) + value + String("\"");
-  html += String(F("><br>"));
-
+  if (enable) {
+    if (label.length())
+      html = String(F("<label for=\"")) + name + String("\">") + label + String(F("</label>"));
+    html += String(F("<input type=\"text\" id=\"")) + name + String(F("\" name=\"")) + name + String("\"");
+    if (pattern.length())
+      html += String(F(" pattern=\"")) + pattern + String("\"");
+    if (placeholder.length())
+      html += String(F(" placeholder=\"")) + placeholder + String("\"");
+    if (value.length())
+      html += String(F(" value=\"")) + value + String("\"");
+    html += String(">");
+    html = AutoConnectElementBasis::posterior(html);
+  }
   return html;
 }
 
@@ -167,6 +203,7 @@ void AutoConnectRadioBasis::empty(const size_t reserve) {
   std::vector<String>().swap(_values);
   if (reserve)
     _values.reserve(reserve);
+  checked = 0;
 }
 
 /**
@@ -176,21 +213,26 @@ void AutoConnectRadioBasis::empty(const size_t reserve) {
 const String AutoConnectRadioBasis::toHTML(void) const {
   String  html = String("");
 
-  if (label.length()) {
-    html = label;
-    if (order == AC_Vertical)
-      html += String(F("<br>"));
-  }
-  uint8_t n = 0;
-  for (const String value : _values) {
-    n++;
-    String  id = name + "_" + String(n);
-    html += String(F("<input type=\"radio\" name=\"")) + name + String(F("\" id=\"")) + id + String(F("\" value=\"")) + value + String("\"");
-    if (n == checked - 1)
-      html += String(F(" checked"));
-    html += String(F("><label for=\"")) + id + String("\">") + value + String(F("</label>"));
-    if (order == AC_Vertical)
-      html += String(F("<br>"));
+  if (enable) {
+    if (label.length()) {
+      html = label;
+      if (order == AC_Vertical)
+        html += String(F("<br>"));
+    }
+    uint8_t n = 0;
+    for (const String value : _values) {
+      n++;
+      String  id = name + "_" + String(n);
+      html += String(F("<input type=\"radio\" name=\"")) + name + String(F("\" id=\"")) + id + String(F("\" value=\"")) + value + String("\"");
+      if (n == checked)
+        html += String(F(" checked"));
+      html += String(F("><label for=\"")) + id + String("\">") + value + String(F("</label>"));
+      if (n <= tags.size())
+        html += tags[n - 1];
+      if (order == AC_Vertical)
+        html += String(F("<br>"));
+    }
+    html = AutoConnectElementBasis::posterior(html);
   }
   return html;
 }
@@ -198,7 +240,7 @@ const String AutoConnectRadioBasis::toHTML(void) const {
 /**
  * Returns current selected value in the radio same group
  */
-const String& AutoConnectRadioBasis::value() const {
+const String& AutoConnectRadioBasis::value(void) const {
   static const String _nullString = String();
   return checked ? _values.at(checked - 1) : _nullString;
 }
@@ -214,6 +256,20 @@ void AutoConnectSelectBasis::empty(const size_t reserve) {
   std::vector<String>().swap(_options);
   if (reserve)
     _options.reserve(reserve);
+  selected = 0;
+}
+
+/**
+* Indicate an entry with the specified value in the value's collection.
+* @param value     The value to indicates in the collection.
+*/
+void AutoConnectSelectBasis::select(const String& value) {
+  for (std::size_t n = 0; n < _options.size(); n++) {
+    if (at(n).equalsIgnoreCase(value)) {
+      selected = n + 1;
+      break;
+    }
+  }
 }
 
 /**
@@ -227,13 +283,29 @@ void AutoConnectSelectBasis::empty(const size_t reserve) {
 const String AutoConnectSelectBasis::toHTML(void) const {
   String  html = String("");
 
-  if (label.length())
-    html = String(F("<label for=\"")) + name + String("\">") + label + String(F("</label>"));
-  html += String(F("<select name=\"")) + name + String(F("\" id=\"")) + name + String("\">");
-  for (const String option : _options)
-    html += String(F("<option value=\"")) + option + "\">" + option + String(F("</option>"));
-  html += String(F("</select>"));
+  if (enable) {
+    if (label.length())
+      html = String(F("<label for=\"")) + name + String("\">") + label + String(F("</label>"));
+    html += String(F("<select name=\"")) + name + String(F("\" id=\"")) + name + String("\">");
+    uint8_t n = 1;
+    for (const String option : _options) {
+      html += String(F("<option value=\"")) + option + "\"";
+      if (n++ == selected)
+        html += String(F(" selected"));
+      html += ">" + option + String(F("</option>"));
+    }
+    html += String(F("</select>"));
+    html = AutoConnectElementBasis::posterior(html);
+  }
   return html;
+}
+
+/**
+ * Returns current selected value in the radio same group
+ */
+const String& AutoConnectSelectBasis::value(void) const {
+  static const String _nullString = String();
+  return selected ? _options.at(selected - 1) : _nullString;
 }
 
 /**
@@ -243,7 +315,13 @@ const String AutoConnectSelectBasis::toHTML(void) const {
  * @return String  an HTML string.
  */
 const String AutoConnectSubmitBasis::toHTML(void) const {
-  return String(F("<input type=\"button\" name=\"")) + name + String(F("\" value=\"")) + value + String(F("\" onclick=\"_sa('")) + uri + String("')\">");
+  String  html = String("");
+
+  if (enable) {
+    html = String(F("<input type=\"button\" name=\"")) + name + String(F("\" value=\"")) + value + String(F("\" onclick=\"_sa('")) + uri + String("')\">");
+    html = AutoConnectElementBasis::posterior(html);
+  }
+  return html;
 }
 
 /**
@@ -252,22 +330,27 @@ const String AutoConnectSubmitBasis::toHTML(void) const {
  * @return String  an HTML string.
  */
 const String AutoConnectTextBasis::toHTML(void) const {
-  String  html = String("<div");
-  String  value_f = value;
+  String  html = String("");
 
-  if (style.length())
-    html += String(F(" style=\"")) + style + String("\"");
-  html += String(">");
-  if (format.length()) {
-    int   buflen = (value.length() + format.length() + 16 + 1) & (~0xf);
-    char* buffer;
-    if ((buffer = (char*)malloc(buflen))) {
-      snprintf(buffer, buflen, format.c_str(), value.c_str());
-      value_f = String(buffer);
-      free(buffer);
+  if (enable) {
+    html = String(F("<div id=\"")) + name + String('"');
+    String  value_f = value;
+
+    if (style.length())
+      html += String(F(" style=\"")) + style + String("\"");
+    html += String(">");
+    if (format.length()) {
+      int   buflen = (value.length() + format.length() + 16 + 1) & (~0xf);
+      char* buffer;
+      if ((buffer = (char*)malloc(buflen))) {
+        snprintf(buffer, buflen, format.c_str(), value.c_str());
+        value_f = String(buffer);
+        free(buffer);
+      }
     }
+    html += value_f + String(F("</div>"));
+    html = AutoConnectElementBasis::posterior(html);
   }
-  html += value_f + String(F("</div>"));
   return html;
 }
 

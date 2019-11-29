@@ -13,10 +13,10 @@ The AutoConnectAux class has several functions to manipulate AutoConnectElements
 To add AutoConnectElment(s) to an AutoConnectAux object, use the add function.
 
 ```cpp
-void AutoConnectAux::add(AutoConenctElement& addon)
+void AutoConnectAux::add(AutoConnectElement& addon)
 ```
 ```cpp
-void AutoConnectAux::add(AutoConenctElementVT addons)
+void AutoConnectAux::add(AutoConnectElementVT addons)
 ```
 
 The add function adds the specified AutoConnectElement to AutoConnectAux. The AutoConnectElementVT type is the [*std::vector*](https://en.cppreference.com/w/cpp/container/vector) of the [*reference wrapper*](https://en.cppreference.com/w/cpp/utility/functional/reference_wrapper) to AutoConnectElements, and you can add these elements in bulk by using the [*list initialization*](https://en.cppreference.com/w/cpp/language/list_initialization) with the sketch.
@@ -70,7 +70,7 @@ AutoConnectElement* AutoConnectAux::getElement(const String& name)
 ```
 
 ```cpp
-T& AutoConenctAux::getElement<T>(const String& name)
+T& AutoConnectAux::getElement<T>(const String& name)
 ```
 
 ```cpp
@@ -108,10 +108,10 @@ The AutoConnectElement type behaves as a variant of other element types. Therefo
 
 ```cpp
 const String auxJson = String("{\"title\":\"Page 1 title\",\"uri\":\"/page1\",\"menu\":true,\"element\":[{\"name\":\"caption\",\"type\":\"ACText\",\"value\":\"hello, world\"}]}");
-AutoConenct portal;
+AutoConnect portal;
 portal.load(auxJson);
 AutoConnectAux* aux = portal.aux("/page1");  // Identify the AutoConnectAux instance with uri
-AutoConenctText& text = aux->getElement<AutoConnectText>("caption");  // Cast to real type and access members
+AutoConnectText& text = aux->getElement<AutoConnectText>("caption");  // Cast to real type and access members
 Serial.println(text.value);
 ```
 
@@ -126,7 +126,7 @@ AutoConnectText& text2 = aux["caption"].as<AutoConnectText>();
 ```
 
 !!! note "Need cast to convert to the actual type"
-    An operator `[]` returns a referene of an AutoConnectElement. It is necessary to convert the type according to the actual element type with [AutoConnectElement::as<T\>](apielements.md#ast62) functon.
+    An operator `[]` returns a reference of an AutoConnectElement. It is necessary to convert the type according to the actual element type with [AutoConnectElement::as<T\>](apielements.md#ast62) function.
     ```cpp
     AutoConnectButton& AutoConnectElement::as<AutoConnectButton>()
     AutoConnectCheckbox& AutoConnectElement::as<AutoConnectCheckbox>()
@@ -145,9 +145,67 @@ To get all the AutoConnectElements in an AutoConnectAux object use the [**getEle
 AutoConnectElementVT& AutoConnectAux::getElements(void)
 ```
 
+### <i class="fa fa-edit"></i> Enable AutoConnectElements during the sketch execution
+
+AutoConnectElemets have an enable attribute to activate its own HTML generation. Sketches can change the HTMLization of their elements dynamically by setting or resetting the enable value. An element whose the enable attribute is true will generate itself HTML and place on the custom Web page.  And conversely, it will not generate the HTML when the value is false.
+
+For example, to enable the submit button only when the ESP module is connected to the access point in STA mode, you can sketch the following:
+
+```cpp hl_lines="30 31 32 33"
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <AutoConnect.h>
+
+static const char AUX[] PROGMEM = R("
+{
+  "name" : "aux",
+  "uri" : "/aux",
+  "menu" : true,
+  "element" : [
+    {
+      "name": "input",
+      "type": "ACInput",
+      "label": "Input"
+    },
+    {
+      "name": "send",
+      "type": "ACSubmit",
+      "uri": "/send"
+    }
+  ]
+}
+");
+
+AutoConnect    portal;
+AutoConnectAux page;
+
+String onPage(AutoConectAux& aux, PageArgument& args) {
+  AutoConnectSubmit& send = aux["send"].as<AutoConnectSubmit>();
+  if (WiFi.isConnected())
+    send.enable = (WiFi.getMode() == WIFI_STA);
+  else
+    send.enable = false;
+  return String();
+}
+
+void setup() {
+  page.load(AUX);
+  page.on(onPage);
+  portal.join(page);
+  portal.begin();
+}
+
+void loop() {
+  portal.handleClient();
+}
+```
+
+!!! hint "Desirable to set or reset the enable attribute in the page handler"
+    The enable attribute can be set at any time during the sketch execution. The page handler with the [AC_EXIT_AHEAD](apiaux.md#on) option is sure to handle it.
+
 ## Loading &amp; saving AutoConnectElements with JSON
 
-AutoConnect supports reading the custom Web page definitions written in JSON and also supports loading and saving of AutoConnectElements. In both cases, the target object is a [JSON document for AutoConnect](acjson.md). However, it can not save all AutoConnectElements contained in the page as a custom Web page. (ie. AutoConnectAux)
+AutoConnect supports reading the custom Web page definitions written in JSON and also supports loading and saving of AutoConnectAux or AutoConnectElements. In both cases, the target object is a [JSON document for AutoConnect](acjson.md). However, it can not save all AutoConnectElements contained in the page as a custom Web page. (ie. AutoConnectAux)
 
 <img src="images/ac_load_save.svg">
 
@@ -223,7 +281,7 @@ Serial.println(serverName.value);
 
 ### <i class="fa fa-download"></i> Saving AutoConnectElements with JSON
 
-To save the AutoConnectElement as a JSON document, use the [AutoConnectAux::saveElement](apiaux.md#saveelement) function. It serializes the contents of the object based on the type of the AutoConnectElement. You can persist a serialized AutoConnectElements as a JSON document to a stream.
+To save the AutoConnectAux or the AutoConnectElement as a JSON document, use the [AutoConnectAux::saveElement](apiaux.md#saveelement) function. It serializes the contents of the object based on the type of the AutoConnectElement. You can persist a serialized AutoConnectElements as a JSON document to a stream.
 
 ```cpp
 // Open a parameter file on the SPIFFS.
@@ -262,6 +320,8 @@ The example above saves `server` and `period` elements from the AutoConnectAux o
   }
 ]
 ```
+
+Above JSON document can be loaded as it is into a custom Web page using the loadElement function. The loadElement function also loads the value of the element, so the saved value can be restored on the custom Web page.
 
 ## Custom field data handling
 
@@ -336,7 +396,7 @@ An above example is the most simple sketch of handling values entered into a cus
 
 Another method is effective when custom Web pages have complicated page transitions. It is a way to straight access the AutoConnectElements member value. You can get the AutoConnectElement with the specified name using the [getElement](#get-autoconnectelement-from-the-autoconnectaux) function. The following sketch executes the above example with AutoConnect only, without using the function of ESP8266WebServer.
 
-```cpp hl_lines="47 50"
+```cpp hl_lines="48 51"
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <AutoConnect.h>
@@ -382,8 +442,9 @@ AutoConnect portal;
 String feelsOn(AutoConnectAux& aux, PageArgument& args) {
 
   // Get the AutoConnectInput named "feels".
-  // The where() function returns the AutoConnectAux of the page that triggered this handler.
-  AutoConnectInput& feels = portal.where()->getElement<AutoConnectInput>("feels");
+  // The where() function returns an uri string of the AutoConnectAux that triggered this handler.
+  AutoConnectAux* hello = portal.aux(portal.where());
+  AutoConnectInput& feels = hello->getElement<AutoConnectInput>("feels");
   
   // Get the AutoConnectText named "echo".
   AutoConnectText&  echo = aux.getElement<AutoConnectText>("echo");
@@ -407,7 +468,7 @@ void loop() {
 
 The above example handles in the handler for the values of a custom Web page. An [AutoConnect::on](api.md#on) function registers a handler for the AutoConnectAux page of the specified uri. The argument of the custom Web page handler is an AutoConnectAux of the page itself and the [PageArgument](https://github.com/Hieromon/PageBuilder#arguments-of-invoked-user-function) object.
 
-To retrieve the values entered in a custom Web page you need to access the AutoConnectElement of the page that caused the request to this page and to do this, you use the [AutoConnect::where](api.md#where) function. The `AutoConnect::where` function returns a pointer to the AutoConnectAux object of the custom Web page that caused the HTTP request.
+To retrieve the values entered in a custom Web page you need to access the AutoConnectElement of the page that caused the request to this page and to do this, you use the [AutoConnect::where](api.md#where) function. The `AutoConnect::where` function returns an uri string of the AutoConnectAux object of the custom Web page that caused the HTTP request.
 
 !!! note "The where() function is available for only AutoConnectAux."
     The `AutoConnect::where` function is available only for the AutoConnectAux object. It is invalid for HTTP requests from individual pages registered with the **on** handler of ESP8266WebServer/WebServer for ESP32. In other words, the `AutoConnect::where` function only returns the last AutoConnecAux page called.
@@ -533,6 +594,129 @@ portal.on("/echo", [](AutoConnectAux& aux, PageArgument& args) {
 portal.begin();
 ```
 
+### <i class="fa fa-wrench"></i> Transfer of input values ​​across pages
+
+Since v1.0.0, AutoConnect supports a new attribute with each element that allows automatic transfer of input values across pages without sketching. AutoConnect will copy the input value of the elements declared as [global](apielements.md#global_2) to the same-named global elements on a different custom Web pages at the page transition timing.
+
+<img src="images/global.svg"> 
+
+The **global** attribute will be useful for echoing input values back to another custom Web pages. This copy operation can be performed between different types. (eg., copy value from AutoConnectInput to AutoConnectText) The following example reflects the input value of PAGE1 to the AutoConnectText field of PAGE2 without sketch code.
+
+```cpp hl_lines="8 10 28 30"
+static const char PAGE1[] PROGMEM = R"(
+{
+  "title": "PAGE1",
+  "uri": "/page1",
+  "menu": true,
+  "element": [
+    {
+      "name": "input1",
+      "type": "ACInput",
+      "global": true
+    },
+    {
+      "name": "send",
+      "type": "ACSubmit",
+      "value": "OK",
+      "uri": "/page2"
+    }
+  ]
+}
+)";
+static const char PAGE2[] PROGMEM = R"(
+{
+  "title": "PAGE2",
+  "uri": "/page2",
+  "menu": false,
+  "element": [
+    {
+      "name": "input1",
+      "type": "ACText",
+      "global": true
+    }
+  ]
+}
+)";
+
+AutoConnect portal;
+AutoConnectAux page1;
+AutoConnectAux page2;
+
+void setup() {
+  page1.load(PAGE1);
+  page2.load(PAGE2);
+  portal.join( { page1, page2 });
+  portal.begin();
+}
+
+void loop() {
+  portal.handleClient();
+}
+```
+
+<i class="fa fa-arrow-down"></i><br><i class="fa fa-eye"></i> The value entered in **input1 declared in PAGE1** is reflected in **input1 of PAGE2** as an AutoConnectText value even if there is no sketch code to transfer it to PAGE2. It's shown as like:<br>
+<span style="width:300px;height:159px"><img align="top" width="300" height="159" src="images/global1.png"></span>
+<span style="margin-left:7px;"><img width="20" src="images/arrow_right.png"></span>
+<span style="margin-left:7px;width:300px;height:159px"><img width="300" height="159" src="images/global2.png"></span>
+
+!!! note "Copy only for same-named and the global"
+    The input value will be copied only if the global attribute of the destination element is true. If an element with the same name is declared non-global, the value is not copied.
+
+### <i class="fa fa-wrench"></i> Retrieve the values with WebServer::on handler
+
+ESP8266WebServer class and the WebServer class assume that the implementation of the ReqestHandler class contained in the WebServer library will handle the URL requests. Usually, it is sketch code registered by ESP8266WebServer::on function.
+
+When a page transition from a custom Web page created by AutoConnectAux to a handler registered with ESP2866WebServer::on function, a little trick is needed to retrieve the values of AutoConnectElements. (i.e. the URI of the ESP8266WebServer::on handler is specified in the [uri](acelements.md#uri) attribute of [AutoConnectSubmit](acelements.md#autoconnectsubmit)) AutoConnect cannot intervene in the procedure in which the ESP8266WebServer class calls the on-page handler coded with the sketch. Therefore, it is necessary to retrieve preliminary the values of AutoConnectElements using the [AutoConnectAux::fetchElement](apiaux.md#fetchelement) function for value processing with the on-page handler.
+
+The following sketch is an example of extracting values inputted on a custom web page with an on-page handler and then processing it.
+
+```cpp hl_lines="13 20 27 38"
+ESP8266WebServer server;
+AutoConnect portal(server);
+AutoConnectAux Input;
+
+const static char InputPage[] PROGMEM = R"r(
+{
+  "title": "Input", "uri": "/input", "menu": true, "element": [
+    { "name": "input", "type": "ACInput", "label": "INPUT" },
+    {
+      "name": "save",
+      "type": "ACSubmit",
+      "value": "SAVE",
+      "uri": "/"
+    }
+  ]
+}
+)r";
+
+// An on-page handler for '/' access
+void onRoot() {
+  String  content =
+  "<html>"
+  "<head><meta name='viewport' content='width=device-width, initial-scale=1'></head>"
+  "<body><div>INPUT: {{value}}</div></body>"
+  "</html>";
+
+  Input.fetchElement();    // Preliminary acquisition
+
+  // For this steps to work, need to call fetchElement function beforehand.
+  String value = Input["input"].value;
+  content.replace("{{value}}", value);
+  server.send(200, "text/html", content);
+}
+
+void setup() {
+  Input.load(InputPage);
+  portal.join(Input);
+  server.on("/", onRoot);  // Register the on-page handler
+  portal.begin();  
+}
+
+void loop() {
+  portal.handleClient();
+}
+```
+
 ### <i class="fa fa-wpforms"></i> Overwrite the AutoConnectElements
 
 Sketches can update the attributes of AutoConnectElements with two approaches. A one is to assign directly to the attributes of a member variable of its element. The other is to overwrite them with loading the element by [AutoConnectAux::loadElement](apiaux.md#loadelement). 
@@ -577,7 +761,7 @@ void loop() {
 
 ### <i class="far fa-check-square"></i> Check data against on submission
 
-By giving a [pattern](apielements.md#pattern) to [AutoConnectInput](apielements.md#autoconnectinput), you can find errors in data styles while typing in custom Web pages. The pattern is specified by [regular expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions).[^2] If the value during input of AutoConnectInput does not match the regular expression specified in the pattern, its background color changes to pink. The following example shows the behavior when checking the IP address in the AutoConnectInput field.
+By giving a [pattern](apielements.md#pattern) to [AutoConnectInput](apielements.md#autoconnectinput), you can find errors in data styles while typing in custom Web pages. The pattern is specified with [regular expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions).[^2] If the value during input of AutoConnectInput does not match the regular expression specified in the pattern, its background color changes to pink. The following example shows the behavior when checking the IP address in the AutoConnectInput field.
 
 [^2]:Regular expression specification as a pattern of AutoConnectInput is [JavaScript compliant](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions).
 
@@ -597,18 +781,60 @@ By giving a [pattern](apielements.md#pattern) to [AutoConnectInput](apielements.
 }
 ```
 
-<div>
-  <span style="display:block;margin-left:136px;"><img width="32px" height="32xp" src="images/arrow_down.png"></span>
-  <span style="display:block;width:306px;height:136px;border:1px solid lightgrey;"><img data-gifffer="images/aux_pattern.gif" data-gifffer-height="134" data-gifffer-width="304" /></span>
-</div>
+<i class="fa fa-arrow-down"></i><br><i class="fa fa-eye"></i> It's shown as like:<br>
+<span style="display:block;width:306px;height:136px;border:1px solid lightgrey;"><img data-gifffer="images/aux_pattern.gif" data-gifffer-height="134" data-gifffer-width="304" /></span>
 
-If you are not familiar with regular expressions, you may feel that description very strange. And matter of fact, it is a strange description for those unfamiliar with formal languages. If your regular expression can not interpret the intended syntax and semantics, you can use an online tester. The [regex101](https://regex101.com/) is an exceptional online site for testing and debugging regular expressions.
+If you are not familiar with regular expressions, you may feel that description very strange. Matter of fact, it's a strange description for those who are unfamiliar with the formal languages. If your regular expression can not interpret the intended syntax and semantics, you can use an online tester. The [regex101](https://regex101.com/) is an exceptional online tool for testing and debugging regular expressions.
 
-### <img src="images/regexp.png" align="top"> Validate input data
+### <img src="images/regexp.png" align="top"> Input data validation
 
 The [pattern](apielements.md#pattern) attribute of [AutoConnectInput](apielements.md#autoconnectinput) only determines the data consistency on the web browser based on the given regular expression. In order to guarantee the validity of input data, it is necessary to verify it before actually using it.
 
-You can validate input data from [AutoConnectInput](apielements.md#autoconnectinput) using the [isValid](apielements.md#isvalid) function before actually processing it.  The [isValid](apielements.md#isvalid) function determines whether the [value](apielements.md#value_3) currently stored in [AutoConnectInput](apielements.md#autoconnectinput) matches the [pattern](apielements.md#pattern). 
+You can validate input data from [AutoConnectInput](apielements.md#autoconnectinput) using the [isValid](apielements.md#isvalid) function before actually processing it.  The [isValid](apielements.md#isvalid) function determines whether the [value](apielements.md#value_3) currently stored in [AutoConnectInput](apielements.md#autoconnectinput) matches the [pattern](apielements.md#pattern).
+
+You can also use the [AutoConnectAux::isValid](apiaux.md#isvalid) function to verify the data input to all [AutoConnectInput](apielements.md#autoconnectinput) elements on the custom Web page at once. The two sketches below show the difference between using [AutoConnectInput::isValid](apielements.md#isvalid) and using [AutoConnectAux::isValid](apiaux.md#isvalid). In both cases, it verifies the input data of the same AutoConnectInput, but in the case of using AutoConnectAux::isValid, the amount of sketch coding is small.
+
+**A common declaration**
+
+```cpp
+const char PAGE[] PROGMEM = R"(
+{
+  "title": "Custom page",
+  "uri": "/page",
+  "menu": true,
+  "element": [
+    {
+      "name": "input1",
+      "type": "ACInput",
+      "pattern": "^[0-9]{4}$"
+    },
+    {
+      "name": "input2",
+      "type": "ACInput",
+      "pattern": "^[a-zA-Z]{4}$"
+    }
+  ]
+}
+)";
+AutoConnectAux page;
+page.load(PAGE);
+```
+
+**Using AutoConnectInput::isValid**
+
+```cpp
+AutoConnectInput& input1 = page["input1"].as<AutoConnectInput>();
+AutoConnectInput& input2 = page["input2"].as<AutoConnectInput>();
+if (!input1.isValid() || !input2.isValid())
+  Serial.println("Validation error");
+```
+
+**Using AutoConnectAux::isValid**
+
+```cpp
+if (!page.isValid())
+  Serial.println("Validation error");
+```
 
 ### <i class="fa fa-exchange"></i> Convert data to actually type
 

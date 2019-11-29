@@ -5,9 +5,41 @@ For AutoConnect menus to work properly, call [*AutoConnect::handleRequest()*](ap
 
 See also the explanation [here](basicusage.md#esp8266webserver-hosted-or-parasitic).
 
+## <i class="fa fa-question-circle"></i> After updating to AutoConnect v1.0.0, established APs disappear from Open SSIDs with ESP32.
+
+Since AutoConnect v1.0.0 for ESP32, the storage location in the flash of established credentials has moved from EEPROM to Preferences. After You update AutoConnect to v1.0.0, past credentials saved by v0.9.12 earlier will *not be accessible* from the AutoConnect menu - **Open SSIDs**. You need to transfer once the stored credentials from the EEPROM area to the Preferences area.
+
+You can migrate the past saved credentials using [**CreditMigrate.ino**](https://github.com/Hieromon/AutoConnect/tree/master/examples/CreditMigrate) which the examples folder contains.
+
+!!! info "Needs to Arduino core for ESP32 1.0.2 or earlier"
+    EEPROM area with arduino-esp32 core **1.0.3** has moved from **partition** to the **nvs**. CreditMigrate.ino requires arduino-esp32 core **1.0.2** or earlier to migrate saved credentials.
+
 ## <i class="fa fa-question-circle"></i> An esp8266ap as SoftAP was connected but Captive portal does not start.
 
 Captive portal detection could not be trapped. It is necessary to disconnect and reset ESP8266 to clear memorized connection data in ESP8266. Also, It may be displayed on the smartphone if the connection information of esp8266ap is wrong. In that case, delete the connection information of esp8266ap memorized by the smartphone once.
+
+## <i class="fa fa-question-circle"></i> Compile error that 'EEPROM' was not declared in this scope
+
+If the user sketch includes the header file as `EEPROM.h`, this compilation error may occur depending on the order of the `#include` directives. `AutoConnectCredentials.h` including in succession linked from `AutoConnect.h` defines **NO_GLOBAL_EEPROM** internally, so if your sketch includes `EEPROM.h` after `AutoConnect.h`, the **EEPROM** global variable will be lost.
+
+If you use EEPROM with your sketch, declare `#include <EEPROM.h>` in front of `#include <AutoConnect.h>`.
+
+## <i class="fa fa-question-circle"></i> Compile error that 'ESPhttpUpdate' was not declared in this scope
+
+If the user sketch includes the header file as `ESP8266httpUpdate.h`, this compilation error may occur depending on the order of the `#include` directives. `AutoConnectUpdate.h` including in succession linked from `AutoConnect.h` defines **NO_GLOBAL_HTTPUPDATE** internally, so if your sketch includes `ESP8266httpUpdate.h` after `AutoConnect.h`, the **ESPhttpUpdate** global variable will be lost.
+
+You can avoid a compile error in one of two ways:
+
+1. Disable an AutoConnectUpdate feature if you don't need.
+
+    You can disable the AutoConnectUpdate feature by commenting out the **AUTOCONNECT_USE_UPDATE** macro in the `AutoConnectDefs.h` header file.
+    ```cpp
+    #define AUTOCONNECT_USE_UPDATE
+    ```
+
+2. Change the order of `#include` directives.
+
+    With the sketch, `#include <ESP8266httpUpdate.h>` before `#include <AutoConnect.h>`.
 
 ## <i class="fa fa-question-circle"></i> Connection lost immediately after establishment with AP
 
@@ -25,9 +57,21 @@ To avoid this problem, try [changing the channel](#1-change-wifi-channel).
 
 ESP32 hardware equips only one RF circuitry for WiFi signal. At the AP_STA mode, ESP32 as an AP attempts connect to another AP on another channel while keeping the connection with the station then the channel switching will occur causes the station may be disconnected. But it may not be just a matter of channel switching causes ESP8266 has the same constraints too. It may be a problem with AutoConnect or the arduino core or SDK issue. This problem will persist until a specific solution.
 
+## <i class="fa fa-question-circle"></i> Data saved to EEPROM is different from my sketch wrote.
+
+By default, AutoConnect saves the credentials of the established connection into EEPROM. The credential area of EEPROM used by AutoConnect will conflict with data owned by the user sketch if without measures taken. It will destroy the user sketch data and the data stored in EEPROM by AutoConnect with each other.  
+You have the following two options to avoid this conflict:
+
+- Move the credential saving area of EEPROM.  
+  You can protect your data from corruption by notifying AutoConnect where to save credentials. Notification of the save location for the credentials uses [AutoConnectConfig::boundaryOffset](apiconfig.md#boundaryoffset) option. Refer to the chapter on [Advanced usage](advancedusage.md#move-the-saving-area-of-eeprom-for-the-credentials) for details.
+
+- Suppresses the automatic save operation of credentials by AutoConnect.  
+  You can completely stop saving the credentials by AutoConnect. However, if you select this option, you lose the past credentials which were able to connect to the AP. Therefore, the effect of the [automatic reconnection feature](advancedusage.md#automatic-reconnect) will be lost.  
+  If you want to stop the automatic saving of the credentials, uses [AutoConnectConfig::autoSave](apiconfig.md#autosave) option specifying **AC_SAVECREDENTIAL_NEVER**. Refer to the chapter on [Advanced usage](advancedusage.md#auto-save-credential) for details.
+
 ## <i class="fa fa-question-circle"></i> Does not appear esp8266ap in smartphone.
 
-Maybe it is successfully connected at the **first WiFi.begin**. ESP8266 remembers the last SSID successfully connected and will use at the next. It means SoftAP will only start up when the first *WiFi.begin()* fails.
+Maybe it is successfully connected at the [**first WiFi.begin**](lsbegin.md#autoconnectbegin-logic-sequence). ESP8266 remembers the last SSID successfully connected and will use at the next. It means SoftAP will only start up when the first *WiFi.begin()* fails.
 
 The saved SSID would be cleared by  *WiFi.disconnect()* with WIFI_STA mode. If you do not want automatic reconnection, you can erase the memorized SSID with the following simple sketch.
 
@@ -62,21 +106,12 @@ void loop() {
 
 Probably **WiFi.begin** failed with the specified SSID. Activating the [debug printing](advancedusage.md#debug-print) will help you to track down the cause.
 
-## <i class="fa fa-question-circle"></i> How change esp8266ap for SSID name in Captive portal?
-
-You can change both by using [AutoConnectConfig::apid](apiconfig.md#apid) and [AutoConnectConfig::psk](apiconfig.md#psk). Refer to section [Change SSID and Password for SoftAP](advancedusage.md#change-ssid-and-password-for-softap) in [Advanced usage](advancedusage.md).
-
-## <i class="fa fa-question-circle"></i> How change HTTP port?
-
-HTTP port number is defined as a macro in [AutoConnectDefs.h](https://github.com/Hieromon/AutoConnect/blob/master/src/AutoConnectDefs.h#L112) header file. You can change it directly with several editors and must re-compile.
-
-```cpp
-#define AUTOCONNECT_HTTPPORT    80
-```
 
 ## <i class="fa fa-question-circle"></i> Hang up after Reset?
 
-If ESP8266 hang up after reset by AutoConnect menu, perhaps manual reset is not yet. Especially if it is not manual reset yet after uploading the sketch, the boot mode will stay 'Uart Download'. There is some discussion about this on the Github's ESP8266 core: https://github.com/esp8266/Arduino/issues/1017
+If ESP8266 hang up after reset by AutoConnect menu, perhaps manual reset is not yet. Especially if it is not manual reset yet after uploading the sketch, the boot mode will stay 'Uart Download'. There is some discussion about this on the Github's ESP8266 core: https://github.com/esp8266/Arduino/issues/1017 [^1]
+
+[^1]: This issue has been resolved in ESP8266 core 2.5.0 and later.    
 
 If you received the following message, the boot mode is still sketch uploaded. It needs to the manual reset once.
 
@@ -95,6 +130,22 @@ The correct boot mode for starting the sketch is **(3, x)**.
     |----------|-------------|
     | rst cause | 1: power on<br>2: external reset<br>4: hardware watchdog reset |
     | boot mode<br>(the first parameter) | 1: ESP8266 is in UART-down mode (and downloads firmware into flash).<br>3: ESP8266 is in Flash-boot mode (and boots up from flash). |
+
+## <i class="fa fa-question-circle"></i> How can I detect the captive portal starting?
+
+You can use the [AutoConnect::onDetect](api.md#ondetect) exit routine. For more details and an implementation example of the onDetect exit routine, refer to the chapter "[Captive portal start detection](advancedusage.md#captive-portal-start-detection)".
+
+## <i class="fa fa-question-circle"></i> How change HTTP port?
+
+HTTP port number is defined as a macro in [AutoConnectDefs.h](https://github.com/Hieromon/AutoConnect/blob/master/src/AutoConnectDefs.h#L112) header file. You can change it directly with several editors and must re-compile.
+
+```cpp
+#define AUTOCONNECT_HTTPPORT    80
+```
+
+## <i class="fa fa-question-circle"></i> How change SSID or Password in Captive portal?
+
+You can change both by using [AutoConnectConfig::apid](apiconfig.md#apid) and [AutoConnectConfig::psk](apiconfig.md#psk). Refer to section [Change SSID and Password for SoftAP](advancedusage.md#change-ssid-and-password-for-softap) in [Advanced usage](advancedusage.md).
 
 ## <i class="fa fa-question-circle"></i> How erase the credentials saved in EEPROM?
 
@@ -128,6 +179,29 @@ Because AutoConnect does not send a login success response to the captive portal
 ## <i class="fa fa-question-circle"></i> I cannot see the custom Web page.
 
 If the sketch is correct, a JSON syntax error may have occurred. In this case, activate the [AC_DEBUG](faq.md#3-turn-on-the-debug-log-options) and rerun. If you take the message of JSON syntax error, the [Json Assistant](https://arduinojson.org/v5/assistant/) helps syntax checking. This online tool is provided by the author of ArduinoJson and is most consistent for the AutoConnect. 
+
+## <i class="fa fa-question-circle"></i> Saved credentials are wrong or lost.
+
+A structure of AutoConnect saved credentials has changed two times throughout enhancement with v1.0.3 and v1.1.0. In particular, due to enhancements in v1.1.0, AutoConnectCredential data structure has lost the backward compatibility with previous versions. You must erase the flash of the ESP module using the esptool completely to save the credentials correctly with v1.1.0.
+```
+esptool -c esp8266 (or esp32) -p [COM_PORT] erase_flash
+```
+
+## <i class="fa fa-question-circle"></i> Some AutoConnect page is cut off.
+
+It may be two possibilities as follows:
+
+1. Packet loss during transmission due to a too weak WiFi signal.
+2. Heap is insufficient memory. AutoConnect entrusts HTML generation to PageBuilder that makes heavy use the String::concatenate function and causes memory fragmentation. This is a structural problem with PageBuilder, but it is difficult to solve immediately.
+
+If this issue produces with your sketch, Reloading the page may recover.  
+Also, you can check the memory running out status by rebuilding the sketch with [PageBuilder's debug log option](faq.md#fn:2) turned on.
+
+If the heap memory is insufficient, the following message is displayed on the serial console.
+
+```
+[PB] Failed building, free heap:<Size of free heap>
+```
 
 ## <i class="fa fa-question-circle"></i> Submit element in a custom Web page does not react.
 

@@ -2,8 +2,8 @@
  *  AutoConnect proper menu label constant definition.
  *  @file   AutoConnectLabels.h
  *  @author hieromon@gmail.com
- *  @version    0.9.8
- *  @date   2019-03-11
+ *  @version    1.0.0
+ *  @date   2019-08-15
  *  @copyright  MIT license.
  */
 
@@ -56,10 +56,39 @@
 //#define AUTOCONNECT_MENULABEL_HOME        "Main"
 #endif // !AUTOCONNECT_MENULABEL_HOME
 
+// Menu item: Update
+#ifndef AUTOCONNECT_MENULABEL_UPDATE
+#define AUTOCONNECT_MENULABEL_UPDATE      "Update"
+#endif // !AUTOCONNECT_MENULABEL_UPDATE
+
 // Button label: RESET
 #ifndef AUTOCONNECT_BUTTONLABEL_RESET
 #define AUTOCONNECT_BUTTONLABEL_RESET     "RESET"
 //#define AUTOCONNECT_BUTTONLABEL_RESET     "Reboot"
 #endif // !AUTOCONNECT_BUTTONLABEL_RESET
 
+// Menu colors
+// The following three color code items determine the color scheme of
+// the menu. In addition to hexadecimal color values, you can specify
+// 140 standard color names that apply to CSS.
+// To be no sense of discomfort, select the same series of values for
+// the background and the active item.
+
+// Menu text foreground color
+#ifndef AUTOCONNECT_MENUCOLOR_TEXT
+#define AUTOCONNECT_MENUCOLOR_TEXT        "#fff"
+//#define AUTOCONNECT_MENUCOLOR_TEXT        "#fffacd"
+#endif // !AUTOCONNECT_MENUCOLOR_TEXT
+
+// Menu background color
+#ifndef AUTOCONNECT_MENUCOLOR_BACKGROUND
+#define AUTOCONNECT_MENUCOLOR_BACKGROUND  "#263238"
+// #define AUTOCONNECT_MENUCOLOR_BACKGROUND  "#696969"
+#endif // !AUTOCONNECT_MENUCOLOR_BACKGROUND
+
+// Background color with active menu items and mouse hover
+#ifndef AUTOCONNECT_MENUCOLOR_ACTIVE
+#define AUTOCONNECT_MENUCOLOR_ACTIVE      "#37474f"
+// #define AUTOCONNECT_MENUCOLOR_ACTIVE      "#808080"
+#endif
 #endif

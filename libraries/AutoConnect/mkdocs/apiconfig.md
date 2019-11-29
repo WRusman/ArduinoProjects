@@ -37,12 +37,12 @@ SoftAP's SSID.
 Sets IP address for Soft AP in captive portal. When AutoConnect fails the initial WiFi.begin, it starts the captive portal with the IP address specified this.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">IPAddress</span><span class="apidesc">The default value is **192.168.244.1**</span></dd>
+    <dd><span class="apidef">IPAddress</span><span class="apidesc">The default value is **172.217.28.1**</span></dd>
 </dl>
 
 ### <i class="fa fa-caret-right"></i> autoReconnect
 
-Automatically will try to reconnect with the past established access point (BSSID) when the current configured SSID in ESP8266/ESP32 could not be connected. By enabling this option, *AutoConnect::begin()* function will attempt to reconnect to a known access point using credentials stored in the EEPROM, even if the connection failed by current SSID.  
+Automatically will try to reconnect with the past established access point (BSSID) when the current configured SSID in ESP8266/ESP32 could not be connected. By enabling this option, *AutoConnect::begin()* function will attempt to reconnect to a known access point using credentials stored in the flash, even if the connection failed by current SSID.  
 If the connection fails, starts the captive portal in SoftAP+STA mode.  
 <dl class="apidl">
     <dt>**Type**</dt>
@@ -98,13 +98,14 @@ Specify the location to be redirected after module reset in the AutoConnect menu
     <dd>AC_ONBOOTURI_t</dd>
     <dt>**Value**</dt>
     <dd><span class="apidef">AC_ONBOOTURI_ROOT</span><span class="apidesc"></span><span class="apidef">&nbsp;</span><span class="apidesc">Resetting the module redirects it to the AutoConnect root path. The root path is assumed to be AUTOCONNECT_URI defined in AutoConnectDefs.h.</span></dd>
-    <dd><span class="apidef">AC_ONBOOTURI_HOME</span><span class="apidesc"></span><span class="apidef">&nbsp;</span><span class="apidesc">It is redirected to the uri specified by [**AutoConnectConfig::homeUri**](apiconfig.md#homeuri).</span></dd>
+    <dd><span class="apidef">AC_ONBOOTURI_HOME</span><span class="apidesc"></span><span class="apidef">&nbsp;</span><span class="apidesc">It is redirected to the URI specified by [**AutoConnectConfig::homeUri**](apiconfig.md#homeuri).</span></dd>
 </dl>
 
 ### <i class="fa fa-caret-right"></i> boundaryOffset
 
 Sets the offset address of the credential storage area for EEPROM. This value must be between greater than 4 and less than flash sector size. (4096 by SDK)  
-The default value is 0.
+The default value is 0.  
+This option is valid only for ESP8266 or ESP32 arduino core 1.0.2 earlier.
 <dl class="apidl">
     <dt>**Type**</dt>
     <dd>uint16_t</dd>
@@ -147,7 +148,7 @@ Set secondary DNS server address when using static IP address.
 Sets gateway address for Soft AP in captive portal. When AutoConnect fails the initial WiFi.begin, it starts the captive portal with the IP address specified this.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">IPAddress</span><span class="apidesc">The default value is **192.168.244.1**</span></dd>
+    <dd><span class="apidef">IPAddress</span><span class="apidesc">The default value is **172.217.28.1**</span></dd>
 </dl>
 
 ### <i class="fa fa-caret-right"></i> hidden
@@ -198,7 +199,7 @@ Sets subnet mask for Soft AP in captive portal. When AutoConnect fails the initi
 
 ### <i class="fa fa-caret-right"></i> portalTimeout
 
-Specify the timeout value of the captive portal in [ms] units. It is valid when the station is not connected and does not time out if the station is connected to the ESP module in SoftAP mode (ie Attempting WiFi connection with the portal function). If 0, the captive portal will not be timed-out.
+Specify the timeout value of the captive portal in [ms] units. It is valid when the station is not connected and does not time out if the station is connected to the ESP module in SoftAP mode (i.e. Attempting WiFi connection with the portal function). If 0, the captive portal will not be timed-out.
 <dl class="apidl">
     <dt>**Type**</dt>
     <dd><span class="apidef">unsigned long</span><span class="apidesc">Captive portal timeout value. The default value is 0.</span></dd>
@@ -253,6 +254,36 @@ Set the subnetmask when using static IP address.
     <dd>IPAddress</dd>
 </dl>
 
+### <i class="fa fa-caret-right"></i> ticker
+
+Set flicker signal output according to WiFi connection status during AutoConnect::begin behavior.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd>bool</dd>
+    <dt>**Value**</dt>
+    <dd><span class="apidef">true</span><span class="apidesc">Output the flicker signal while [AutoConnect::begin](api.md#begin) operation. The **AUTOCONNECT_TICKER_PORT** macro in the `AutoConnectDefs.h` header file assigns pins for signal output. The default pin is arduino valiant's LED_BUILTIN. For boards without the LED_BUILTIN pin, assume pin #2.</span></dd>
+    <dd><span class="apidef">false</span>No flicker signal output.<span class="apidesc"></span></dd>
+</dl>
+
+### <i class="fa fa-caret-right"></i> tickerPort
+
+Specifies the GPIO port number to output the flicker signal of the ticker. The default assumes on the board dependent definition LED_BUILTIN macro redefined by **AUTOCONNECT_TICKER_PORT** in `AutoConnectDefs.h`.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd>uint8_t</dd>
+</dl>
+
+### <i class="fa fa-caret-right"></i> tickerOn
+
+Specifies the active logic level of the flicker signal. This value indicates the active signal level when driving the ticker.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd>uint8_t</dd>
+    <dt>**Value**</dt>
+    <dd><span class="apidef">LOW</span>A flicker signal is an active-high.<span class="apidesc"></span></dd>
+    <dd><span class="apidef">HIGH</span>A flicker signal is an active-low.<span class="apidesc"></span></dd>
+</dl>
+
 ### <i class="fa fa-caret-right"></i> title
 
 Set the menu title.
@@ -264,8 +295,8 @@ Set the menu title.
 ## <i class="fa fa-code"></i> AutoConnectConfig example
 
 ```cpp
-AutoConenct        Portal;
-AutoConenctConfig  Config("", "passpass");    // SoftAp name is determined at runtime
+AutoConnect        Portal;
+AutoConnectConfig  Config("", "passpass");    // SoftAp name is determined at runtime
 Config.apid = ESP.hostname();                 // Retrieve host name to SotAp identification
 Config.apip = IPAddress(192,168,10,101);      // Sets SoftAP IP address
 Config.gateway = IPAddress(192,168,10,1);     // Sets WLAN router IP address

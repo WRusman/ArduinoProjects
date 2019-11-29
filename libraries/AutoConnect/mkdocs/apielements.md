@@ -3,32 +3,17 @@
 ### <i class="fa fa-code"></i> Constructor
 
 ```cpp
-AutoConnectButton(const char* name = "", const char* value = "", const String& action = String())
+AutoConnectButton(const char* name = "", const char* value = "", const String& action = String(), const ACPosterior_t post = AC_Tag_None)
 ```
 <dl class="apidl">
     <dt>**Parameters**</dt>
     <dd><span class="apidef">name</span><span class="apidesc">The element name.</span></dd>
     <dd><span class="apidef">value</span><span class="apidesc">Value of the element.</span></dd>
     <dd><span class="apidef">action</span><span class="apidesc">Native code of the action script executed when the button is clicked.</span></dd>
+    <dd><span class="apidef">post</span><span class="apidesc">Specifies the tag to be output afterward the element.</span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member variables
-
-#### <i class="fa fa-caret-right"></i> name
-
-The element name.
-<dl class="apidl">
-    <dt>**Type**</dt>
-    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
-</dl>
-
-#### <i class="fa fa-caret-right"></i> value
-
-Value of the element.
-<dl class="apidl">
-    <dt>**Type**</dt>
-    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
-</dl>
 
 #### <i class="fa fa-caret-right"></i> action
 
@@ -39,6 +24,51 @@ HTML native code of the action script to be executed when the button is clicked.
 </dl>
 
 [^1]:JavaScript can be inserted into a custom Web page using AutoConnectElement.
+
+#### <i class="fa fa-caret-right"></i> enable
+
+Enable HTML tag generation for the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">AutoConnect will generate the element into HTML only if the enable attribute is true.</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> global
+
+The global attribute copies input values ​​between elements of the same name on different custom Web pages.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">An entered value will be copied to elements of the same name in other AutoConnectAuxes during page transition.<br>However, it will be copied only when the destination element has the true for a global attribute.</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> name
+
+The element name.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> post
+
+Specifies a tag to add behind the HTML code generated from the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">ACPosterior_t</span><span class="apidesc">
+        
+- **`AC_Tag_None`** : No generate additional tags.
+- **`AC_Tag_BR`** : Add a `<br>` tag to the end of the element.
+- **`AC_Tag_P`** : Include the element in the `<p> ~ </p>` tag.
+</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> value
+
+Value of the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
 
 ### <i class="fa fa-code"></i> Public member functions
 
@@ -58,7 +88,7 @@ Returns type of AutoConnectElement.
 ### <i class="fa fa-code"></i> Constructor
 
 ```cpp
-  explicit AutoConnectCheckboxBasis(const char* name = "", const char* value = "", const char* label = "", const bool checked = false)
+AutoConnectCheckbox(const char* name = "", const char* value = "", const char* label = "", const bool checked = false, const ACPosition_t labelPosition = AC_Behind, const ACPosterior_t post = AC_Tag_BR)
 ```
 <dl class="apidl">
     <dt>**Parameters**</dt>
@@ -66,24 +96,34 @@ Returns type of AutoConnectElement.
     <dd><span class="apidef">value</span><span class="apidesc">Value of the element.</span></dd>
     <dd><span class="apidef">label</span><span class="apidesc">A label string prefixed to the checkbox.</span></dd>
     <dd><span class="apidef">check</span><span class="apidesc">Checked state of the checkbox.</span></dd>
+    <dd><span class="apidef">labelPosition</span><span class="apidesc">Specifies the position of the label to generate.</span></dd>
+    <dd><span class="apidef">post</span><span class="apidesc">Specifies the tag to be output afterward the element.</span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member variables
 
-#### <i class="fa fa-caret-right"></i> name
+#### <i class="fa fa-caret-right"></i> checked
 
-The element name. 
+It indicates the checked status of the checkbox. The value of the checked checkbox element is packed in the query string and sent by submit.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">bool</span><span class="apidesc"></span>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> value
+#### <i class="fa fa-caret-right"></i> enable
 
-Value of the element. It becomes a value attribute of an HTML `#!html <input type="checkbox">` tag.
+Enable HTML tag generation for the element.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">bool</span><span class="apidesc">AutoConnect will generate the element into HTML only if the enable attribute is true.</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> global
+
+The global attribute copies input values ​​between elements of the same name on different custom Web pages.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">An entered value will be copied to elements of the same name in other AutoConnectAuxes during page transition.<br>However, it will be copied only when the destination element has the true for a global attribute.</span></dd>
 </dl>
 
 #### <i class="fa fa-caret-right"></i> label
@@ -94,12 +134,45 @@ A label is an optional string. A label is always arranged on the right side of t
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> checked
+#### <i class="fa fa-caret-right"></i> labelPosition
 
-It indicates the checked status of the checkbox. The value of the checked checkbox element is packed in the query string and sent by submit.
+Specifies the position of the label to generate with ACPostion_t enumeration value.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">Boolean</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">ACPosition_t</span><span class="apidesc">
+        
+- **`AC_Infront`** : Place a label in front of the check box.
+- **`AC_Behind`** : Place a label behind the check box.
+</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> name
+
+The element name. 
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> post
+
+Specifies a tag to add behind the HTML code generated from the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">ACPosterior_t</span><span class="apidesc">
+        
+- **`AC_Tag_None`** : No generate additional tags.
+- **`AC_Tag_BR`** : Add a `<br>` tag to the end of the element.
+- **`AC_Tag_P`** : Include the element in the `<p> ~ </p>` tag.
+</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> value
+
+Value of the element. It becomes a value attribute of an HTML `#!html <input type="checkbox">` tag.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member functions
@@ -120,15 +193,32 @@ Returns type of AutoConnectElement.
 ### <i class="fa fa-code"></i> Constructor
 
 ```cpp
-AutoConnectElement(const char* name = "", const char* value = "")
+AutoConnectElement(const char* name = "", const char* value = "", const ACPosterior_t post = AC_Tag_None)
 ```
 <dl class="apidl">
     <dt>**Parameters**</dt>
     <dd><span class="apidef">name</span><span class="apidesc">The element name.</span></dd>
     <dd><span class="apidef">value</span><span class="apidesc">Value of the element.</span></dd>
+    <dd><span class="apidef">post</span><span class="apidesc">Specifies the tag to be output afterward the element.</span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member variables
+
+#### <i class="fa fa-caret-right"></i> enable
+
+Enable HTML tag generation for the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">AutoConnect will generate the element into HTML only if the enable attribute is true.</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> global
+
+The global attribute copies input values ​​between elements of the same name on different custom Web pages.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">An entered value will be copied to elements of the same name in other AutoConnectAuxes during page transition.<br>However, it will be copied only when the destination element has the true for a global attribute.</span></dd>
+</dl>
 
 #### <i class="fa fa-caret-right"></i> name
 
@@ -136,6 +226,19 @@ The element name.
 <dl class="apidl">
     <dt>**Type**</dt>
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> post
+
+Specifies a tag to add behind the HTML code generated from the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">ACPosterior_t</span><span class="apidesc">
+        
+- **`AC_Tag_None`** : No generate additional tags.
+- **`AC_Tag_BR`** : Add a `<br>` tag to the end of the element.
+- **`AC_Tag_P`** : Include the element in the `<p> ~ </p>` tag.
+</span></dd>
 </dl>
 
 #### <i class="fa fa-caret-right"></i> value
@@ -167,7 +270,7 @@ AutoConnectElement& as<T>(void)
 Casts the reference to the AutoConnectElement the specified type.
 <dl class="apidl">
     <dt>**Parameter**</dt>
-    <dd><span class="apidef">T</span><span class="apidesc">The element type. AutoConnectElements type such as [AutoConnectButton](apielements.md#autoconnectbutton), [AutoConnectCheckbox](apielements.md#autoconnectcheckbox), [AutoConnectFile](apielements.md#autoconnectfile), [AutoConnectInput](apielements.md#autoconnectinput), [AutoConnectRadio](apielements.md#autoconnectradio), [AutoConnectSelect](apielements.md#autoconnectselect), [AutoConnectSubmit](apielements.md#autoconnectsubmit), [AutoConnectText](apielements.md#autoconnecttext).</span></dd>
+    <dd><span class="apidef">T</span><span class="apidesc">The element type. AutoConnectElements type such as [AutoConnectButton](apielements.md#autoconnectbutton), [AutoConnectCheckbox](apielements.md#autoconnectcheckbox), [AutoConnectFile](apielements.md#autoconnectfile), [AutoConnectInput](apielements.md#autoconnectinput), [AutoConnectRadio](apielements.md#autoconnectradio), [AutoConnectSelect](apielements.md#autoconnectselect), [AutoConnectStyle](apielements.md#autoconnectstyle), [AutoConnectSubmit](apielements.md#autoconnectsubmit), [AutoConnectText](apielements.md#autoconnecttext).</span></dd>
     <dt>**Return value**</dt>
     <dd>A reference to the AutoConnectElement with actual type.</dd>
 </dl>
@@ -177,7 +280,7 @@ Casts the reference to the AutoConnectElement the specified type.
 ### <i class="fa fa-code"></i> Constructor
 
 ```cpp
-AutoConnectFile(const char* name = "", const char* value = "", const char* label = "", const ACFile_t store = AC_File_FS)
+AutoConnectFile(const char* name = "", const char* value = "", const char* label = "", const ACFile_t store = AC_File_FS, const ACPosterior_t post = AC_Tag_BR)
 ```
 <dl class="apidl">
     <dt>**Parameters**</dt>
@@ -185,10 +288,42 @@ AutoConnectFile(const char* name = "", const char* value = "", const char* label
     <dd><span class="apidef">value</span><span class="apidesc">File name to be upload.</span></dd>
     <dd><span class="apidef">label</span><span class="apidesc">Label string.</span></dd>
     <dd><span class="apidef">store</span><span class="apidesc">The **ACFile_t** enumerator that represents the media to save the uploaded file.</span></dd>
-
+    <dd><span class="apidef">post</span><span class="apidesc">Specifies the tag to be output afterward the element.</span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member variables
+
+#### <i class="fa fa-caret-right"></i> enable
+
+Enable HTML tag generation for the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">AutoConnect will generate the element into HTML only if the enable attribute is true.</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> global
+
+The global attribute copies input values ​​between elements of the same name on different custom Web pages.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">An entered value will be copied to elements of the same name in other AutoConnectAuxes during page transition.<br>However, it will be copied only when the destination element has the true for a global attribute.</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> label
+
+A label is an optional string. A label is always arranged on the left side of the file input box. Specification of a label will generate an HTML `#!html <label>` tag with an id attribute. The file input box and the label are connected by the id attribute.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> mimeType
+
+The mime type of the upload file which included as Media type in the http post request. Set by the client (usually the browser) that requested the upload. It is determined by the file type as `application/octet-stream`, `text` etc. which is described in [IANA Media Type](https://www.iana.org/assignments/media-types/media-types.xhtml).
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
 
 #### <i class="fa fa-caret-right"></i> name
 
@@ -198,20 +333,25 @@ The element name.
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> value
+#### <i class="fa fa-caret-right"></i> post
 
-File name to be upload. The value contains the value entered by the client browser to the `#!html <input type="file">` tag and is read-only.
+Specifies a tag to add behind the HTML code generated from the element.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">ACPosterior_t</span><span class="apidesc">
+        
+- **`AC_Tag_None`** : No generate additional tags.
+- **`AC_Tag_BR`** : Add a `<br>` tag to the end of the element.
+- **`AC_Tag_P`** : Include the element in the `<p> ~ </p>` tag.
+</span></dd>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> label
+#### <i class="fa fa-caret-right"></i> size
 
-A label is an optional string. A label is always arranged on the left side of the file input box. Specification of a label will generate an HTML `#!html <label>` tag with an id attribute. The file input box and the label are connected by the id attribute.
+Size of the uploading file.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">size_t</span><span class="apidesc"></span></dd>
 </dl>
 
 #### <i class="fa fa-caret-right"></i> store
@@ -227,21 +367,14 @@ Specifies the save destination of the uploaded file. You can use the built-in up
     </span></dd>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> mimeType
+#### <i class="fa fa-caret-right"></i> value
 
-The mime type of the upload file which included as Media type in the http post request. Set by the client (usually the browser) that requested the upload. It is determined by the file type as `application/octet-stream`, `text` etc. which is described in [IANA Media Type](https://www.iana.org/assignments/media-types/media-types.xhtml).
+File name to be upload. The value contains the value entered by the client browser to the `#!html <input type="file">` tag and is read-only.
 <dl class="apidl">
     <dt>**Type**</dt>
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> size
-
-Size of the uploading file.
-<dl class="apidl">
-    <dt>**Type**</dt>
-    <dd><span class="apidef">size_t</span><span class="apidesc"></span></dd>
-</dl>
 
 ### <i class="fa fa-code"></i> Public member functions
 
@@ -261,7 +394,7 @@ Returns type of AutoConnectFile.
 ### <i class="fa fa-code"></i> Constructor
 
 ```cpp
-AutoConnectInput(const char* name = "", const char* value = "", const char* label = "", const char* pattern = "", const char* placeholder = "")
+AutoConnectInput(const char* name = "", const char* value = "", const char* label = "", const char* pattern = "", const char* placeholder = "", const ACPosterior_t post = AC_Tag_BR)
 ```
 <dl class="apidl">
     <dt>**Parameters**</dt>
@@ -270,29 +403,38 @@ AutoConnectInput(const char* name = "", const char* value = "", const char* labe
     <dd><span class="apidef">label</span><span class="apidesc">Label string.</span></dd>
     <dd><span class="apidef">pattern</span><span class="apidesc">Regular expression string for checking data format.</span></dd>
     <dd><span class="apidef">placeholder</span><span class="apidesc">A placeholder string.</span></dd>
+    <dd><span class="apidef">post</span><span class="apidesc">Specifies the tag to be output afterward the element.</span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member variables
 
-#### <i class="fa fa-caret-right"></i> name
+#### <i class="fa fa-caret-right"></i> enable
 
-The element name.
+Enable HTML tag generation for the element.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">bool</span><span class="apidesc">AutoConnect will generate the element into HTML only if the enable attribute is true.</span></dd>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> value
+#### <i class="fa fa-caret-right"></i> global
 
-Value of the element. It becomes a value attribute of an HTML `#!html <input type="text">` tag. An entered text in the custom Web page will be sent with a query string of the form. The value set before accessing the page is displayed as the initial value.
+The global attribute copies input values ​​between elements of the same name on different custom Web pages.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">bool</span><span class="apidesc">An entered value will be copied to elements of the same name in other AutoConnectAuxes during page transition.<br>However, it will be copied only when the destination element has the true for a global attribute.</span></dd>
 </dl>
 
 #### <i class="fa fa-caret-right"></i> label
 
 A label is an optional string. A label is always arranged on the left side of the input box. Specification of a label will generate an HTML `#!html <label>` tag with an id attribute. The input box and the label are connected by the id attribute.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> name
+
+The element name.
 <dl class="apidl">
     <dt>**Type**</dt>
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
@@ -314,18 +456,28 @@ A placeholder is an option string. Specification of a placeholder will generate 
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
 </dl>
 
-### <i class="fa fa-code"></i> Public member functions
+#### <i class="fa fa-caret-right"></i> post
 
-#### <i class="fa fa-caret-right"></i> typeOf
-
-```cpp
-ACElement_t typeOf(void)
-```
-Returns type of AutoConnectElement.
+Specifies a tag to add behind the HTML code generated from the element.
 <dl class="apidl">
-    <dt>**Return value**</dt>
-    <dd>AC_Input</dd>
+    <dt>**Type**</dt>
+    <dd><span class="apidef">ACPosterior_t</span><span class="apidesc">
+        
+- **`AC_Tag_None`** : No generate additional tags.
+- **`AC_Tag_BR`** : Add a `<br>` tag to the end of the element.
+- **`AC_Tag_P`** : Include the element in the `<p> ~ </p>` tag.
+</span></dd>
 </dl>
+
+#### <i class="fa fa-caret-right"></i> value
+
+Value of the element. It becomes a value attribute of an HTML `#!html <input type="text">` tag. An entered text in the custom Web page will be sent with a query string of the form. The value set before accessing the page is displayed as the initial value.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
+
+### <i class="fa fa-code"></i> Public member functions
 
 #### <i class="fa fa-caret-right"></i> isValid
 
@@ -339,43 +491,71 @@ Evaluate the pattern as a regexp and return whether value matches. Always return
     <dd><span class="apidef">false</span><span class="apidesc">The value does not match a pattern.</span></dd>
 </dl>
 
+#### <i class="fa fa-caret-right"></i> typeOf
+
+```cpp
+ACElement_t typeOf(void)
+```
+Returns type of AutoConnectElement.
+<dl class="apidl">
+    <dt>**Return value**</dt>
+    <dd>AC_Input</dd>
+</dl>
+
 ## AutoConnectRadio
 
 ### <i class="fa fa-code"></i> Constructor
 
 ```cpp
-AutoConnectRadio(const char* name = "", std::vector<String> const& values = {}, const char* label = "", const ACArrange_t order = AC_Vertical, const uint8_t checked = 0)
+AutoConnectRadio(const char* name = "", std::vector<String> const& values = {}, const char* label = "", const ACArrange_t order = AC_Vertical, const uint8_t checked = 0, const ACPosterior_t post = AC_Tag_BR)
 ```
 <dl class="apidl">
     <dt>**Parameters**</dt>
     <dd><span class="apidef">name</span><span class="apidesc">The element name.</span></dd>
-    <dd><span class="apidef">values</span><span class="apidesc">An array of values of the radio buttons. Specifies an [std::vector](https://en.cppreference.com/w/cpp/container/vector) object.</span></dd>
+    <dd><span class="apidef">values</span><span class="apidesc">An array of values of the radio buttons. Specifies a [std::vector](https://en.cppreference.com/w/cpp/container/vector) object.</span></dd>
     <dd><span class="apidef">label</span><span class="apidesc">Label string.</span></dd>
     <dd><span class="apidef">order</span><span class="apidesc">The direction to arrange the radio buttons.</span></dd>
     <dd><span class="apidef">checked</span><span class="apidesc">An index to be checked in the radio buttons.</span></dd>
+    <dd><span class="apidef">post</span><span class="apidesc">Specifies the tag to be output afterward the element.</span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member variables
 
-#### <i class="fa fa-caret-right"></i> name
+#### <i class="fa fa-caret-right"></i> checked
 
-The element name.
+Specifies the index number (1-based) of the **values** to be checked. If this parameter is not specified neither item is checked.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">uint8_t</span><span class="apidesc"></span></dd>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> values
+#### <i class="fa fa-caret-right"></i> enable
 
-An array of String type for the radio button options. It is an initialization list can be used. The `#!html <input type="radio">` tags will be generated from each entry in the values.
+Enable HTML tag generation for the element.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">std::vector&lt;String&gt;</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">bool</span><span class="apidesc">AutoConnect will generate the element into HTML only if the enable attribute is true.</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> global
+
+The global attribute copies input values ​​between elements of the same name on different custom Web pages.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">An entered value will be copied to elements of the same name in other AutoConnectAuxes during page transition.<br>However, it will be copied only when the destination element has the true for a global attribute.</span></dd>
 </dl>
 
 #### <i class="fa fa-caret-right"></i> label
 
 A label is an optional string. A label will be arranged in the left or top of the radio buttons according to the [order](#order).
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> name
+
+The element name.
 <dl class="apidl">
     <dt>**Type**</dt>
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
@@ -393,26 +573,28 @@ Specifies the direction to arrange the radio buttons. A label will place in the 
     </span></dd>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> checked
+#### <i class="fa fa-caret-right"></i> post
 
-Specifies the index number (1-based) of the **values** to be checked. If this parameter is not specified neither item is checked.
+Specifies a tag to add behind the HTML code generated from the element.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">uint8_t</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">ACPosterior_t</span><span class="apidesc">
+        
+- **`AC_Tag_None`** : No generate additional tags.
+- **`AC_Tag_BR`** : Add a `<br>` tag to the end of the element.
+- **`AC_Tag_P`** : Include the element in the `<p> ~ </p>` tag.
+</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> values
+
+An array of String type for the radio button options. It is an initialization list can be used. The `#!html <input type="radio">` tags will be generated from each entry in the values.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">std::vector&lt;String&gt;</span><span class="apidesc"></span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member functions
-
-#### <i class="fa fa-caret-right"></i> typeOf
-
-```cpp
-ACElement_t typeOf(void)
-```
-Returns type of AutoConnectElement.
-<dl class="apidl">
-    <dt>**Return value**</dt>
-    <dd>AC_Radio</dd>
-</dl>
 
 #### <i class="fa fa-caret-right"></i> add
 
@@ -441,7 +623,9 @@ Indicates the check of the specified option for the radio buttons. You can use t
 ```cpp
 void empty(const size_t reserve = 0)
 ```
-Clear the array of option strings that AutoConnectRadio has in the values. When a **_reserve_** parameter is specified, a vector container of that size is reserved.
+Clear the array of option strings that AutoConnectRadio has in the values. When the **_reserve_** parameter is specified, a vector container of that size is reserved.
+
+The empty function resets the checked value to zero. When the empty function is executed, any button will be turned off.
 <dl class="apidl">
     <dt>**Parameter**</dt>
     <dd><span class="apidef">reserve</span><span class="apidesc">Reserved size of a container for the radio button option strings.</span></dd>
@@ -471,6 +655,17 @@ Returns number of options which contained.
     <dd>Number of options which contained.</dd>
 </dl>
 
+#### <i class="fa fa-caret-right"></i> typeOf
+
+```cpp
+ACElement_t typeOf(void)
+```
+Returns type of AutoConnectElement.
+<dl class="apidl">
+    <dt>**Return value**</dt>
+    <dd>AC_Radio</dd>
+</dl>
+
 #### <i class="fa fa-caret-right"></i> value
 
 ```cpp
@@ -487,20 +682,46 @@ Returns current checked option of the radio buttons.
 ### <i class="fa fa-code"></i> Constructor
 
 ```cpp
-AutoConnectSelect(const char* name = "", std::vector<String> const& options = {}, const char* label = "")
+AutoConnectSelect(const char* name = "", std::vector<String> const& options = {}, const char* label = "", const uint8_t selected = 0, const ACPosterior_t post = AC_Tag_BR)
 ```
 <dl class="apidl">
     <dt>**Parameters**</dt>
     <dd><span class="apidef">name</span><span class="apidesc">The element name.</span></dd>
-    <dd><span class="apidef">options</span><span class="apidesc">An array of options of the select element. Specifies an [std::vector](https://en.cppreference.com/w/cpp/container/vector) object.</span></dd>
+    <dd><span class="apidef">options</span><span class="apidesc">An array of options of the select element. Specifies a [std::vector](https://en.cppreference.com/w/cpp/container/vector) object.</span></dd>
     <dd><span class="apidef">label</span><span class="apidesc">Label string.</span></dd>
+    <dd><span class="apidef">selected</span><span class="apidesc">An option should be pre-selected when the page loads.</span></dd>
+    <dd><span class="apidef">post</span><span class="apidesc">Specifies the tag to be output afterward the element.</span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member variables
 
+#### <i class="fa fa-caret-right"></i> enable
+
+Enable HTML tag generation for the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">AutoConnect will generate the element into HTML only if the enable attribute is true.</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> global
+
+The global attribute copies input values ​​between elements of the same name on different custom Web pages.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">An entered value will be copied to elements of the same name in other AutoConnectAuxes during page transition.<br>However, it will be copied only when the destination element has the true for a global attribute.</span></dd>
+</dl>
+
 #### <i class="fa fa-caret-right"></i> name
 
 The element name.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> label
+
+A label is an optional string. A label will be arranged in the top of the selection list.
 <dl class="apidl">
     <dt>**Type**</dt>
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
@@ -514,26 +735,28 @@ An array of String type for the selection options. It is an initialization list 
     <dd><span class="apidef">std::vector&lt;String&gt;</span><span class="apidesc"></span></dd>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> label
+#### <i class="fa fa-caret-right"></i> post
 
-A label is an optional string. A label will be arranged in the top of the selection list.
+Specifies a tag to add behind the HTML code generated from the element.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">ACPosterior_t</span><span class="apidesc">
+        
+- **`AC_Tag_None`** : No generate additional tags.
+- **`AC_Tag_BR`** : Add a `<br>` tag to the end of the element.
+- **`AC_Tag_P`** : Include the element in the `<p> ~ </p>` tag.
+</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> selected
+
+A `selected` is an optional value. Specifies 1-based index value of an options array that an option should be pre-selected when the page loads.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">uint8_t</span><span class="apidesc"></span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member functions
-
-#### <i class="fa fa-caret-right"></i> typeOf
-
-```cpp
-ACElement_t typeOf(void)
-```
-Returns type of AutoConnectElement.
-<dl class="apidl">
-    <dt>**Return value**</dt>
-    <dd>AC_Select</dd>
-</dl>
 
 #### <i class="fa fa-caret-right"></i> add
 
@@ -551,7 +774,9 @@ Adds a selectable option string for the selection list.
 ```cpp
 void empty(const size_t reserve = 0)
 ```
-Clear the array of options list that AutoConnectSelect has in the options. When a **_reserve_** parameter is specified, a vector container of that size is reserved.
+Clear the array of options list that AutoConnectSelect has in the options. When the **_reserve_** parameter is specified, a vector container of that size is reserved.
+
+The empty function resets the selected value to zero. When the empty function is executed, there are no selected options and the first item is placed at the beginning.
 <dl class="apidl">
     <dt>**Parameter**</dt>
     <dd><span class="apidef">reserve</span><span class="apidesc">Reserved size of a container for the options.</span></dd>
@@ -568,7 +793,17 @@ Returns an option string of the index specified by **_n_**.
     <dd><span class="apidef">n</span><span class="apidesc">Index of options array to return. Its base number is 0.</span></dd>
     <dt>**Return value**</dt>
     <dd>A reference of a option string indexed by the specified the **n**.</dd>
-    <dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> select
+
+```cpp
+void  select(const String& value);
+```
+Selects an option with the value.
+<dl class="apidl">
+    <dt>**Parameter**</dt>
+    <dd><span class="apidef">value</span><span class="apidesc">String value that option should be selected in an option array.</span></dd>
 </dl>
 
 #### <i class="fa fa-caret-right"></i> size
@@ -582,21 +817,50 @@ Returns number of options which contained.
     <dd>Number of options which contained.</dd>
 </dl>
 
-## AutoConnectSubmit
+#### <i class="fa fa-caret-right"></i> typeOf
+
+```cpp
+ACElement_t typeOf(void)
+```
+Returns type of AutoConnectElement.
+<dl class="apidl">
+    <dt>**Return value**</dt>
+    <dd>AC_Select</dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> value
+
+```cpp
+const String& value(void) const;
+```
+Returns current selected option of the select list.
+<dl class="apidl">
+    <dt>**Return value**</dt>
+    <dd>A String of an option current selected. If there is no select option, a null string returned.</dd>
+</dl>
+
+## AutoConnectStyle
 
 ### <i class="fa fa-code"></i> Constructor
 
 ```cpp
-AutoConnectSubmit(const char* name = "", const char* value ="", char* uri = "")
+AutoConnectStyle(const char* name = "", const char* value = "")
 ```
 <dl class="apidl">
     <dt>**Parameters**</dt>
     <dd><span class="apidef">name</span><span class="apidesc">The element name.</span></dd>
-    <dd><span class="apidef">value</span><span class="apidesc">The name of the submit button as an HTML `#!html <input type="button">` tag, it will also be the label of the button.</span></dd>
-    <dd><span class="apidef">uri</span><span class="apidesc">Destination URI.</span></dd>
+    <dd><span class="apidef">value</span><span class="apidesc">Raw CSS code to insert into a style block in a custom web page to generate.</span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member variables
+
+#### <i class="fa fa-caret-right"></i> enable
+
+Enable HTML tag generation for the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">AutoConnect will generate the element into HTML only if the enable attribute is true.</span></dd>
+</dl>
 
 #### <i class="fa fa-caret-right"></i> name
 
@@ -608,15 +872,90 @@ The element name.
 
 #### <i class="fa fa-caret-right"></i> value
 
-The name of the submit button. It will also be the label of the button.
+Raw CSS code to insert into a style block in a custom web page to generate. 
 <dl class="apidl">
     <dt>**Type**</dt>
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
 </dl>
 
+### <i class="fa fa-code"></i> Public member functions
+
+#### <i class="fa fa-caret-right"></i> typeOf
+
+```cpp
+ACElement_t typeOf(void)
+```
+Returns type of AutoConnectElement.
+<dl class="apidl">
+    <dt>**Return value**</dt>
+    <dd>AC_Style</dd>
+</dl>
+
+## AutoConnectSubmit
+
+### <i class="fa fa-code"></i> Constructor
+
+```cpp
+AutoConnectSubmit(const char* name = "", const char* value ="", char* uri = "", const ACPosterior_t post = AC_Tag_None)
+```
+<dl class="apidl">
+    <dt>**Parameters**</dt>
+    <dd><span class="apidef">name</span><span class="apidesc">The element name.</span></dd>
+    <dd><span class="apidef">value</span><span class="apidesc">The name of the submit button as an HTML `#!html <input type="button">` tag, it will also be the label of the button.</span></dd>
+    <dd><span class="apidef">uri</span><span class="apidesc">Destination URI.</span></dd>
+    <dd><span class="apidef">post</span><span class="apidesc">Specifies the tag to be output afterward the element.</span></dd>
+</dl>
+
+### <i class="fa fa-code"></i> Public member variables
+
+#### <i class="fa fa-caret-right"></i> enable
+
+Enable HTML tag generation for the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">AutoConnect will generate the element into HTML only if the enable attribute is true.</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> global
+
+The global attribute copies input values ​​between elements of the same name on different custom Web pages.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">An entered value will be copied to elements of the same name in other AutoConnectAuxes during page transition.<br>However, it will be copied only when the destination element has the true for a global attribute.</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> name
+
+The element name.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> post
+
+Specifies a tag to add behind the HTML code generated from the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">ACPosterior_t</span><span class="apidesc">
+        
+- **`AC_Tag_None`** : No generate additional tags.
+- **`AC_Tag_BR`** : Add a `<br>` tag to the end of the element.
+- **`AC_Tag_P`** : Include the element in the `<p> ~ </p>` tag.
+</span></dd>
+</dl>
+
 #### <i class="fa fa-caret-right"></i> uri
 
 Destination URI.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> value
+
+The name of the submit button. It will also be the label of the button.
 <dl class="apidl">
     <dt>**Type**</dt>
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
@@ -640,7 +979,7 @@ Returns type of AutoConnectElement.
 ### <i class="fa fa-code"></i> Constructor
 
 ```cpp
-AutoConnectText(const char* name = "", const char* value = "", const char* style = "", const char* format = "")
+AutoConnectText(const char* name = "", const char* value = "", const char* style = "", const char* format = "", const ACPosterior_t post = AC_Tag_None)
 ```
 <dl class="apidl">
     <dt>**Parameters**</dt>
@@ -648,9 +987,34 @@ AutoConnectText(const char* name = "", const char* value = "", const char* style
     <dd><span class="apidef">value</span><span class="apidesc">String of content for the text element.</span></dd>
     <dd><span class="apidef">style</span><span class="apidesc">A style code with CSS format that qualifiers the text.</span></dd>
     <dd><span class="apidef">format</span><span class="apidesc">A pointer to a null-terminated multibyte string specifying how to interpret the value. It specifies the conversion format when outputting values. The format string conforms to C-style printf library functions</span></dd>
+    <dd><span class="apidef">post</span><span class="apidesc">Specifies the tag to be output afterward the element.</span></dd>
 </dl>
 
 ### <i class="fa fa-code"></i> Public member variables
+
+#### <i class="fa fa-caret-right"></i> enable
+
+Enable HTML tag generation for the element.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">AutoConnect will generate the element into HTML only if the enable attribute is true.</span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> format
+
+The conversion format when outputting values. The format string conforms to C-style printf library functions.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+</dl>
+
+#### <i class="fa fa-caret-right"></i> global
+
+The global attribute copies input values ​​between elements of the same name on different custom Web pages.
+<dl class="apidl">
+    <dt>**Type**</dt>
+    <dd><span class="apidef">bool</span><span class="apidesc">An entered value will be copied to elements of the same name in other AutoConnectAuxes during page transition.<br>However, it will be copied only when the destination element has the true for a global attribute.</span></dd>
+</dl>
 
 #### <i class="fa fa-caret-right"></i> name
 
@@ -660,12 +1024,17 @@ The element name.
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> value
+#### <i class="fa fa-caret-right"></i> post
 
-A content string of the text element.
+Specifies a tag to add behind the HTML code generated from the element.
 <dl class="apidl">
     <dt>**Type**</dt>
-    <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
+    <dd><span class="apidef">ACPosterior_t</span><span class="apidesc">
+        
+- **`AC_Tag_None`** : No generate additional tags.
+- **`AC_Tag_BR`** : Add a `<br>` tag to the end of the element.
+- **`AC_Tag_P`** : Include the element in the `<p> ~ </p>` tag.
+</span></dd>
 </dl>
 
 #### <i class="fa fa-caret-right"></i> style
@@ -676,9 +1045,9 @@ A style code with CSS format that qualifiers the text.
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
 </dl>
 
-#### <i class="fa fa-caret-right"></i> format
+#### <i class="fa fa-caret-right"></i> value
 
-The conversion format when outputting values. The format string conforms to C-style printf library functions.
+A content string of the text element.
 <dl class="apidl">
     <dt>**Type**</dt>
     <dd><span class="apidef">String</span><span class="apidesc"></span></dd>
