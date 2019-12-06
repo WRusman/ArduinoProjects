@@ -2,8 +2,8 @@
  *	Declaration of AutoConnect class and accompanying AutoConnectConfig class.
  *	@file	AutoConnect.h
  *	@author	hieromon@gmail.com
- *	@version	0.9.7
- *	@date	2019-01-21
+ *	@version	1.1.1
+ *	@date	2019-10-17
  *	@copyright	MIT license.
  */
 
@@ -32,6 +32,12 @@ using WebServerClass = WebServer;
 #include "AutoConnectPage.h"
 #include "AutoConnectCredential.h"
 #include "AutoConnectAux.h"
+#include "AutoConnectTicker.h"
+
+// The realization of AutoConnectUpdate is effective only by the explicit
+// definition of AUTOCONNECT_USE_UPDATE
+#include "AutoConnectUpdate.h"
+class AutoConnectUpdate;  // Reference to avoid circular
 
 /**< A type to save established credential at WiFi.begin automatically. */
 typedef enum AC_SAVECREDENTIAL {
@@ -69,6 +75,9 @@ class AutoConnectConfig {
     immediateStart(false),
     retainPortal(false),
     portalTimeout(AUTOCONNECT_CAPTIVEPORTAL_TIMEOUT),
+    ticker(false),
+    tickerPort(AUTOCONNECT_TICKER_PORT),
+    tickerOn(LOW),
     hostName(String("")),
     homeUri(AUTOCONNECT_HOMEURI),
     title(AUTOCONNECT_MENU_TITLE),
@@ -98,6 +107,9 @@ class AutoConnectConfig {
     immediateStart(false),
     retainPortal(false),
     portalTimeout(portalTimeout),
+    ticker(false),
+    tickerPort(AUTOCONNECT_TICKER_PORT),
+    tickerOn(LOW),
     hostName(String("")),
     homeUri(AUTOCONNECT_HOMEURI),
     title(AUTOCONNECT_MENU_TITLE),
@@ -127,6 +139,9 @@ class AutoConnectConfig {
     immediateStart = o.immediateStart;
     retainPortal = o.retainPortal;
     portalTimeout = o.portalTimeout;
+    ticker = o.ticker;
+    tickerPort = o.tickerPort;
+    tickerOn = o.tickerOn;
     hostName = o.hostName;
     homeUri = o.homeUri;
     title = o.title;
@@ -155,6 +170,9 @@ class AutoConnectConfig {
   bool      immediateStart;     /**< Skips WiFi.begin(), start portal immediately */
   bool      retainPortal;       /**< Even if the captive portal times out, it maintains the portal state. */
   unsigned long portalTimeout;  /**< Timeout value for stay in the captive portal */
+  bool      ticker;             /**< Drives LED flicker according to WiFi connection status. */
+  uint8_t   tickerPort;         /**< GPIO for flicker */
+  uint8_t   tickerOn;           /**< A signal for flicker turn on */
   String    hostName;           /**< host name */
   String    homeUri;            /**< A URI of user site */
   String    title;              /**< Menu title */
@@ -185,12 +203,13 @@ class AutoConnect {
   void  join(AutoConnectAux& aux);
   void  join(AutoConnectAuxVT auxVector);
   bool  on(const String& uri, const AuxHandlerFunctionT handler, AutoConnectExitOrder_t order = AC_EXIT_AHEAD);
-  AutoConnectAux& where(void) const { return *aux(_auxUri); }
+  String where(void) const { return _auxUri; }
 
   /** For AutoConnectAux described in JSON */
 #ifdef AUTOCONNECT_USE_JSON
-  bool  load(const String& aux);
+  bool  load(PGM_P aux);
   bool  load(const __FlashStringHelper* aux);
+  bool  load(const String& aux);
   bool  load(Stream& aux);
 #endif // !AUTOCONNECT_USE_JSON
 
@@ -199,21 +218,17 @@ class AutoConnect {
   void  onNotFound(WebServerClass::THandlerFunction fn);
 
  protected:
-  enum _webServerAllocateType {
-    AC_WEBSERVER_PARASITIC,
-    AC_WEBSERVER_HOSTED
-  };
-  typedef enum _webServerAllocateType  AC_WEBSERVER_TYPE;
   typedef enum {
     AC_RECONNECT_SET,
     AC_RECONNECT_RESET
   } AC_STARECONNECT_t;
-  void  _initialize(void);
   bool  _config(void);
+  bool  _configSTA(const IPAddress& ip, const IPAddress& gateway, const IPAddress& netmask, const IPAddress& dns1, const IPAddress& dns2);
+  bool  _getConfigSTA(station_config_t* config);
   void  _startWebServer(void);
   void  _startDNSServer(void);
   void  _handleNotFound(void);
-  bool  _loadAvailCredential(void);
+  bool  _loadAvailCredential(const char* ssid);
   void  _stopPortal(void);
   bool  _classifyHandle(HTTPMethod mothod, String uri);
   void  _handleUpload(const String& requestUri, const HTTPUpload& upload);
@@ -250,26 +265,28 @@ class AutoConnect {
   size_t               _freeHeapSize;
 
   /** Servers which works in concert. */
-  std::unique_ptr<WebServerClass> _webServer;
+  typedef std::unique_ptr<WebServerClass, std::function<void(WebServerClass *)> > WebserverUP;
+  WebserverUP _webServer = WebserverUP(nullptr, std::default_delete<WebServerClass>());
   std::unique_ptr<DNSServer>      _dnsServer;
-  AC_WEBSERVER_TYPE               _webServerAlloc;
 
   /**
    *  Dynamically hold one page of AutoConnect menu.
    *  Every time a GET/POST HTTP request occurs, an AutoConnect
    *  menu page corresponding to the URI is generated.
    */
-  PageBuilder*  _responsePage;
-  PageElement*  _currentPageElement;
+  std::unique_ptr<PageBuilder> _responsePage;
+  std::unique_ptr<PageElement> _currentPageElement;
 
   /** Extended pages made up with AutoConnectAux */
-  std::unique_ptr<AutoConnectAux> _aux;
+  AutoConnectAux* _aux = nullptr; /**< A top of registered AutoConnectAux */
   String        _auxUri;        /**< Last accessed AutoConnectAux */
   String        _prevUri;       /**< Previous generated page uri */
+  /** Available updater, only reset by AutoConnectUpdate::attach is valid */
+  std::unique_ptr<AutoConnectUpdate>  _update;
 
   /** Saved configurations */
-  AutoConnectConfig     _apConfig;
-  struct station_config _credential;
+  AutoConnectConfig  _apConfig;
+  station_config_t   _credential;
   uint8_t       _hiddenSSIDCount;
   int16_t       _scanCount;
   uint8_t       _connectCh;
@@ -277,13 +294,14 @@ class AutoConnect {
   unsigned long _portalAccessPeriod;
 
   /** The control indicators */
-  bool  _rfConnect;             /**< URI /connect requested */
-  bool  _rfDisconnect;          /**< URI /disc requested */
-  bool  _rfReset;               /**< URI /reset requested */
+  bool  _rfConnect = false;     /**< URI /connect requested */
+  bool  _rfDisconnect = false;  /**< URI /disc requested */
+  bool  _rfReset = false;       /**< URI /reset requested */
   wl_status_t   _rsConnect;     /**< connection result */
 #ifdef ARDUINO_ARCH_ESP32
-  WiFiEventId_t _disconnectEventId; /**< STA disconnection event handler registered id  */
+  WiFiEventId_t _disconnectEventId = -1; /**< STA disconnection event handler registered id  */
 #endif
+  std::unique_ptr<AutoConnectTicker>  _ticker;  /**< */
 
   /** HTTP header information of the currently requested page. */
   IPAddress     _currentHostIP; /**< host IP address */
@@ -352,6 +370,7 @@ class AutoConnect {
   String _token_LIST_SSID(PageArgument& args);
   String _token_SSID_COUNT(PageArgument& args);
   String _token_HIDDEN_COUNT(PageArgument& args);
+  String _token_CONFIG_STAIP(PageArgument& args);
   String _token_OPEN_SSID(PageArgument& args);
   String _token_UPTIME(PageArgument& args);
   String _token_BOOTURI(PageArgument& args);
@@ -361,12 +380,13 @@ class AutoConnect {
   static const  String  _emptyString; /**< An empty string alloaction  **/
 
 #if defined(ARDUINO_ARCH_ESP8266)
-  friend class ESP8266WebServer;
+  friend ESP8266WebServer;
 #elif defined(ARDUINO_ARCH_ESP32)
   friend class WebServer;
 #endif
 
   friend class AutoConnectAux;
+  friend class AutoConnectUpdate;
 };
 
 #endif  // _AUTOCONNECT_H_

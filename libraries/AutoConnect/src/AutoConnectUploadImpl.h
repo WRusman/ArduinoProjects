@@ -2,8 +2,8 @@
  * The default upload handler implementation.
  * @file AutoConnectUploadImpl.h
  * @author hieromon@gmail.com
- * @version  0.9.8
- * @date 2019-03-19
+ * @version  0.9.9
+ * @date 2019-05-25
  * @copyright  MIT license.
  */
 
@@ -11,6 +11,7 @@
 #define _AUTOCONNECTUPLOADIMPL_H_
 
 #if defined(ARDUINO_ARCH_ESP8266)
+#include <core_version.h>
 #include <ESP8266WiFi.h>
 #elif defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>
@@ -37,6 +38,20 @@ typedef SDFile        SDFileT;
 
 #include "AutoConnectDefs.h"
 #include "AutoConnectUpload.h"
+
+namespace AutoConnectUtil {
+AC_HAS_FUNC(end);
+
+template<typename T>
+typename std::enable_if<AutoConnectUtil::has_func_end<T>::value, void>::type end(T* media) {
+  media->end();
+}
+
+template<typename T>
+typename std::enable_if<!AutoConnectUtil::has_func_end<T>::value, void>::type end(T* media) {
+  (void)(media);
+}
+}
 
 /**
  * Handles the default upload process depending on the upload status.
@@ -80,6 +95,7 @@ class AutoConnectUploadFS : public AutoConnectUploadHandler {
       _file = _media->open(filename, mode);
       return _file != false;      
     }
+    AC_DBG("SPIFFS mount failed\n");
     return false;
   }
 
@@ -101,6 +117,27 @@ class AutoConnectUploadFS : public AutoConnectUploadHandler {
   SPIFileT  _file; 
 };
 
+// Fix to be compatibility with backward for ESP8266 core 2.5.1 or later
+// SD pin assignment for AutoConnectFile
+#ifndef AUTOCONNECT_SD_CS
+#if defined(ARDUINO_ARCH_ESP8266)
+#ifndef SD_CHIP_SELECT_PIN
+#define SD_CHIP_SELECT_PIN      SS
+#endif
+#define AUTOCONNECT_SD_CS       SD_CHIP_SELECT_PIN
+#elif defined(ARDUINO_ARCH_ESP32)
+#define AUTOCONNECT_SD_CS       SS
+#endif
+#endif // !AUTOCONNECT_SD_CS
+// Derivation of SCK frequency and ensuring SD.begin compatibility
+#ifdef ARDUINO_ARCH_ESP8266
+#if defined(SD_SCK_HZ)
+#define AC_SD_SPEED(s)  SD_SCK_HZ(s)
+#else
+#define AC_SD_SPEED(s)  s
+#endif
+#endif
+
 // Default handler for uploading to the standard SD class embedded in the core.
 class AutoConnectUploadSD : public AutoConnectUploadHandler {
  public:
@@ -109,16 +146,52 @@ class AutoConnectUploadSD : public AutoConnectUploadHandler {
 
  protected:
   bool  _open(const char* filename, const char* mode) override {
+    const char* sdVerify;
 #if defined(ARDUINO_ARCH_ESP8266)
-    if (_media->begin(_cs, _speed)) {
+    if (_media->begin(_cs, AC_SD_SPEED(_speed))) {
       uint8_t oflag = *mode == 'w' ? FILE_WRITE : FILE_READ;
+      uint8_t sdType = _media->type();      
+      switch (sdType) {
+      case 1: // SD_CARD_TYPE_SD1
+        sdVerify = (const char*)"MMC";
+        break;
+      case 2: // SD_CARD_TYPE_SD2
+        sdVerify = (const char*)"SDSC";
+        break;
+      case 3: // SD_CARD_TYPE_SDHC
+        sdVerify = (const char*)"SDHC";
+        break;
+      default:
+        sdVerify = (const char*)"UNKNOWN";
+        break;
+      }
 #elif defined(ARDUINO_ARCH_ESP32)
     if (_media->begin(_cs, SPI, _speed)) {
       const char* oflag = mode;
+      uint8_t sdType = _media->cardType();
+      switch (sdType) {
+      case CARD_NONE:
+        sdVerify = (const char*)"No card";
+        break;
+      case CARD_MMC:
+        sdVerify = (const char*)"MMC";
+        break;
+      case CARD_SD:
+        sdVerify = (const char*)"SDSC";
+        break;
+      case CARD_SDHC:
+        sdVerify = (const char*)"SDHC";
+        break;
+      default:
+        sdVerify = (const char*)"UNKNOWN";
+        break;
+      }
 #endif
+      AC_DBG("%s mounted\n", sdVerify);
       _file = _media->open(filename, oflag);
       return _file != false;
     }
+    AC_DBG("SD mount failed\n");
     return false;
   }
 
@@ -132,14 +205,14 @@ class AutoConnectUploadSD : public AutoConnectUploadHandler {
   void  _close(void) override {
     if (_file)
       _file.close();
-    _media->end();
+    AutoConnectUtil::end<SDClassT>(_media);
   }
 
  private:
   SDClassT* _media;
   SDFileT   _file;
   uint8_t   _cs;
-  uint8_t   _speed;
+  uint32_t  _speed;
 };
 
 #endif // !_AUTOCONNECTUPLOADIMPL_H_

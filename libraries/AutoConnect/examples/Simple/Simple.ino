@@ -33,7 +33,8 @@ static const char AUX_TIMEZONE[] PROGMEM = R"(
       "name": "timezone",
       "type": "ACSelect",
       "label": "Select TZ name",
-      "option": []
+      "option": [],
+      "selected": 10
     },
     {
       "name": "newline",
@@ -98,6 +99,9 @@ void rootPage() {
     "<html>"
     "<head>"
     "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+    "<script type=\"text/javascript\">"
+    "setTimeout(\"location.reload()\", 1000);"
+    "</script>"
     "</head>"
     "<body>"
     "<h2 align=\"center\" style=\"color:blue;margin:20px;\">Hello, world</h2>"

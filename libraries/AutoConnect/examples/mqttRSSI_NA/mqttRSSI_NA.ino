@@ -5,7 +5,7 @@ This example is for explaining how to use the AutoConnect library.
 In order to execute this example, the ThingSpeak account is needed. Sing up
 for New User Account and create a New Channel via My Channels.
 For details, please refer to the project page.
-https://hieromon.github.io/AutoConnect/examples/index.html#used-with-mqtt-as-a-client-application
+https://hieromon.github.io/AutoConnect/howtoembed.html#used-with-mqtt-as-a-client-application
 
 This example is based on the environment as of March 20, 2018.
 Copyright (c) 2018 Hieromon Ikasamo.
@@ -46,6 +46,7 @@ typedef WebServer WiFiWebServer;
 // facility.
 
 // Declare AutoConnectElements for the page asf /mqtt_setting
+ACStyle(style, "label+input,label+select{position:sticky;left:120px;width:230px!important;box-sizing:border-box;}");
 ACText(header, "<h2>MQTT broker settings</h2>", "text-align:center;color:#2f4f4f;padding:10px;");
 ACText(caption, "Publishing the WiFi signal strength to MQTT channel. RSSI value of ESP8266 to the channel created on ThingSpeak", "font-family:serif;color:#4682b4;");
 ACInput(mqttserver, "", "Server", "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$", "MQTT broker server");
@@ -60,6 +61,7 @@ ACSubmit(discard, "Discard", "/");
 
 // Declare the custom Web page as /mqtt_setting and contains the AutoConnectElements
 AutoConnectAux mqtt_setting(AUX_SETTING_URI, "MQTT Setting", true, {
+  style,
   header,
   caption,
   mqttserver,
@@ -147,8 +149,6 @@ int getStrength(uint8_t points) {
 
 // Retreive the value of each element entered by '/mqtt_setting'.
 String saveParams(AutoConnectAux& aux, PageArgument& args) {
-  // The 'where()' function returns the AutoConnectAux that caused
-  // the transition to this page.
   mqttserver.value.trim();
   channelid.value.trim();
   userkey.value.trim();

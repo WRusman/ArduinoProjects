@@ -16,7 +16,7 @@
     },
     {
       "name": "ArduinoJson",
-      "version": ">=5.13.3,<6.0.0"
+      "version": ">=5.13.3"
     }
   ],
   "frameworks": "arduino",
@@ -25,6 +25,6 @@
     "espressif8266",
     "espressif32"
   ],
-  "version": "0.9.8",
+  "version": "1.1.2",
   "license": "MIT"
 }

@@ -5,7 +5,7 @@ This example is for explaining how to use the AutoConnect library.
 In order to execute this example, the ThingSpeak account is needed. Sing up
 for New User Account and create a New Channel via My Channels.
 For details, please refer to the project page.
-https://hieromon.github.io/AutoConnect/examples/index.html#used-with-mqtt-as-a-client-application
+https://hieromon.github.io/AutoConnect/howtoembed.html#used-with-mqtt-as-a-client-application
 
 This example is based on the environment as of March 20, 2018.
 Copyright (c) 2018 Hieromon Ikasamo.
@@ -44,6 +44,11 @@ static const char AUX_mqtt_setting[] PROGMEM = R"raw(
     "uri": "/mqtt_setting",
     "menu": true,
     "element": [
+      {
+        "name": "style",
+        "type": "ACStyle",
+        "value": "label+input,label+select{position:sticky;left:120px;width:230px!important;box-sizing:border-box;}"
+      },
       {
         "name": "header",
         "type": "ACText",
@@ -275,7 +280,7 @@ String loadParams(AutoConnectAux& aux, PageArgument& args) {
 String saveParams(AutoConnectAux& aux, PageArgument& args) {
   // The 'where()' function returns the AutoConnectAux that caused
   // the transition to this page.
-  AutoConnectAux&   mqtt_setting = portal.where();
+  AutoConnectAux&   mqtt_setting = *portal.aux(portal.where());
   getParams(mqtt_setting);
   AutoConnectInput& mqttserver = mqtt_setting["mqttserver"].as<AutoConnectInput>();
 
