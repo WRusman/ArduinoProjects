@@ -1,6 +1,4 @@
 #include <ESP8266WiFi.h>     
-#include <ESP8266WebServer.h>
-#include <EmbAJAX.h>
 #include <WiFiManager.h>          
 #include <Ticker.h>
 #include <Adafruit_NeoPixel.h>
@@ -15,27 +13,16 @@ WiFiClient espClient;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
 int leds[NUM_SPARKLE] = {0,4,10,16,22,27,33,37,44,50,58,63,70,74,79,85,90,97,102,107,114,120,126,132,138,143} ;
-EmbAJAXOutputDriverWebServerClass server(80);
-EmbAJAXOutputDriver driver(&server);
-EmbAJAXStatic nextCell("</td><td>&nbsp;</td><td><b>");
-EmbAJAXStatic nextRow("</b></td></tr><tr><td>");
-EmbAJAXColorPicker color("color", 0, 255, 255);
-EmbAJAXMutableSpan color_d("color_d");
-char color_d_buf[BUFLEN];
+String redString = "0";
+String greenString = "0";
+String blueString = "0";
+int pos1 = 0;
+int pos2 = 0;
+int pos3 = 0;
+int pos4 = 0;
+String header;
 
-MAKE_EmbAJAXPage(page, "EmbAJAX example - Inputs", "",
-    new EmbAJAXStatic("<table cellpadding=\"10\"><tr><td>"),
-    new EmbAJAXStatic("kerstballen kleur:"),
-    &nextCell,
-    &color,
-    &nextCell,
-    //&color_d,
-    &nextRow,
-    new EmbAJAXStatic("Server status:"),
-    &nextCell,
-    new EmbAJAXConnectionIndicator(),
-    new EmbAJAXStatic("</b></td></tr></table>")
-)
+
 void setup(){
   strip.begin();
   setAll(0,0x05,0);
@@ -54,13 +41,18 @@ void setup(){
   Serial.println("connected...yeey :)");
   ticker.detach();
   digitalWrite(BUILTIN_LED, HIGH);
-  driver.installPage(&page, "/", updateUI);
+
+ driver.installPage(&page, "/", updateUI);
   server.begin();
 }
 
 void loop() {
-    driver.loopHook();
- sparkle(leds[random(NUM_SPARKLE)]);
+  driver.loopHook();
+  int r = color.red();
+  int g = color.green();
+  int b = color.blue();
+
+    sparkle(leds[random(NUM_SPARKLE)]);
 }
 
 void sparkle (int sparkleLed) {
@@ -102,7 +94,8 @@ void configModeCallback (WiFiManager *myWiFiManager) {
   ticker.attach(0.2, tick);
 }
 
-
 void updateUI() {
-    color_d.setValue(strncpy(color_d_buf, color.value(), BUFLEN)); 
-}  
+  Serial.println(r);
+  Serial.println(g);
+  Serial.println(b);
+}

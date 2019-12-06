@@ -3,15 +3,14 @@
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h>          
 #include <Ticker.h>
-#include "Adafruit_Sensor.h"
-#include "Adafruit_AM2320.h"
+#include "DHTesp.h"
 #include <PubSubClient.h>
 
 Ticker ticker;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-Adafruit_AM2320 am2320 = Adafruit_AM2320();
+DHTesp dht;
 
 #define mqtt_server       "mqtt.knuterboas.nl"
 #define mqtt_port         "1883"
@@ -25,12 +24,13 @@ long lastMsg = 0;
 char msg[50];
 int value = 0;
 float temperature, humidity;
+const int dhtpin = 5; //GPIO5 = D1
 
 void setup() {
   randomSeed(micros());
   Serial.begin(115200);
   pinMode(BUILTIN_LED, OUTPUT);
-  am2320.begin();
+  dht.setup(dhtpin, DHTesp::DHT22);
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   ticker.attach(0.6, tick);
@@ -56,8 +56,8 @@ void loop() {
   long now = millis();
   if (now - lastMsg > 60000) {
     lastMsg = now;
-    temperature = am2320.readTemperature();
-    humidity = am2320.readHumidity();
+    temperature = dht.getTemperature();
+    humidity = dht.getHumidity();
     Serial.print("Temperature : ");
     Serial.println(String(temperature).c_str());
     Serial.print("Humidity : ");
