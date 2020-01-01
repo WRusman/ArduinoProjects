@@ -6,12 +6,10 @@
 #include "Adafruit_Sensor.h"
 #include "Adafruit_AM2320.h"
 #include <PubSubClient.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include "OLED.h"
 
 Ticker ticker;
-Adafruit_SSD1306 display(0);
-
+OLED display(4,5);
 WiFiClient espClient;
 PubSubClient client(espClient);
 Adafruit_AM2320 am2320 = Adafruit_AM2320();
@@ -20,14 +18,17 @@ Adafruit_AM2320 am2320 = Adafruit_AM2320();
 #define mqtt_port         "1883"
 #define mqtt_user         "monitor"
 #define mqtt_pass         "6d3lX0u1WOoyAu4E"
-#define mqtt_temptopic    "smitsborg/0160/temperature"
-#define mqtt_humtopic     "smitsborg/0160/humidity"
+#define mqtt_temptopic1    "voermanstraat/buiten/temperature"
+#define mqtt_humtopic1     "voermanstraat/buiten/humidity"
+#define mqtt_temptopic2    "voermanstraat/binnen/temperature"
+#define mqtt_humtopic2     "voermanstraat/binnen/humidity"
 
 
 long lastMsg = 0;
 char msg[50];
 int value = 0;
 float temperature, humidity;
+char message[10];
 
 void setup() {
   randomSeed(micros());
@@ -49,18 +50,22 @@ void setup() {
   ticker.detach();
   digitalWrite(BUILTIN_LED, LOW);
 
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  display.display();
-  delay(2000);
- 
-  // Clear the buffer.
-  display.clearDisplay();
+  display.begin();
+  display.clear();
 }
 
 void loop() {
   if (!client.connected()) {
+    display.clear();
+    display.print("Niet verbonden",0,1);
     connect_mqtt();
+    display.print("Temp.     Hum.", 0,1);
+    display.print("     Inside   ", 2,1);
+    display.print("|",3 ,8);
+    display.print("    Outside   ",5,1);
+    display.print("|",6 ,8);
   }
+
   client.loop();
  
   long now = millis();
@@ -73,8 +78,8 @@ void loop() {
     Serial.print("Humidity : ");
     Serial.println(String(humidity).c_str());
 
-    client.publish(mqtt_temptopic, String(temperature).c_str());
-    client.publish(mqtt_humtopic, String(humidity).c_str());
+    client.publish(mqtt_temptopic2, String(temperature).c_str());
+    client.publish(mqtt_humtopic2, String(humidity).c_str());
   }
 }
 
@@ -92,13 +97,38 @@ void configModeCallback (WiFiManager *myWiFiManager) {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
+  Serial.print("mqtt message in topic [");
   Serial.print(topic);
   Serial.print("] ");
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
   }
   Serial.println();
+
+  memcpy(message, payload,length);
+  if (strcmp(topic,mqtt_temptopic2)==0)
+  {
+    display.print(message, 3, 1);
+    Serial.println(message);  
+  }
+
+  if (strcmp(topic,mqtt_temptopic1)==0)
+  {
+    display.print(message, 6, 1);
+    Serial.println(message);  
+  }
+
+  if (strcmp(topic,mqtt_humtopic2)==0)
+  {
+    display.print(message, 3, 10);
+    Serial.println(message);  
+  }
+
+  if (strcmp(topic,mqtt_humtopic1)==0)
+  {
+    display.print(message, 6, 10);
+    Serial.println(message);  
+  }
 }
   
 void connect_mqtt() {

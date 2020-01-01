@@ -7,8 +7,8 @@
 #include <ESP8266WiFi.h>
 
 // Replace with your network credentials
-const char* ssid     = "ttn";
-const char* password = "belachelijkmakkelijk";
+const char* ssid     = "Maakplek";
+const char* password = "ikbennietdeslimste@maakplek.nl";
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -114,9 +114,9 @@ void loop(){
               redString = header.substring(pos1+1, pos2);
               greenString = header.substring(pos2+1, pos3);
               blueString = header.substring(pos3+1, pos4);
-              /*Serial.println(redString.toInt());
+              Serial.println(redString.toInt());
               Serial.println(greenString.toInt());
-              Serial.println(blueString.toInt());*/
+              Serial.println(blueString.toInt());
               analogWrite(redPin, redString.toInt());
               analogWrite(greenPin, greenString.toInt());
               analogWrite(bluePin, blueString.toInt());
