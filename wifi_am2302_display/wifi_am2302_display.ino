@@ -46,9 +46,9 @@ void setup() {
     delay(1000);
   }
    
-  Serial.println("connected...yeey :)");
+  Serial.println("connected! )");
   ticker.detach();
-  digitalWrite(BUILTIN_LED, LOW);
+  digitalWrite(BUILTIN_LED, HIGH); //led off
 
   display.begin();
   display.clear();
