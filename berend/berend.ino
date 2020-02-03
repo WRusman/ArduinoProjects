@@ -7,10 +7,10 @@ Servo rightfoot;  // create servo object to control the right foot servo
 
 
 void setup() {
-  lefthip.attach(2);    // attaches the servo on pin 2 to the left hip servo object
-  leftfoot.attach(3);   // attaches the servo on pin 3 to the left foot servo object
-  righthip.attach(5);  // attaches the servo on pin 5 to the right hip servo object
-  rightfoot.attach(4);  // attaches the servo on pin 4 to the right foot servo object
+  lefthip.attach(5);    // attaches the servo on pin 2 to the left hip servo object
+  leftfoot.attach(4);   // attaches the servo on pin 3 to the left foot servo object
+  righthip.attach(2);  // attaches the servo on pin 5 to the right hip servo object
+  rightfoot.attach(3);  // attaches the servo on pin 4 to the right foot servo object
   lefthip.write(90);    // center the servo
   leftfoot.write(90);    // center the servo
   righthip.write(90);    // center the servo
@@ -19,11 +19,45 @@ void setup() {
 
 
 void loop() {
-  stepforward(10);
+  stepBackward(10);
   delay(10000);
 }
 
-void stepforward(int steps)
+void stepForward(int steps)
+{
+  moveServo(rightfoot,90,120);
+  moveServo(leftfoot,90,130);
+
+  moveServo(lefthip,90,120);
+  moveServo(righthip,90,120);
+
+  for (int x=0; x <= steps; x++){
+
+  moveServo(leftfoot,130,90);
+  moveServo(rightfoot,120,90);
+  moveServo(leftfoot,90,60);
+  moveServo(rightfoot,90,50);
+  
+  moveServo(righthip,120,60);
+  moveServo(lefthip,120,60);
+    
+  moveServo(rightfoot,50,90);
+  moveServo(leftfoot,60,90);
+  moveServo(rightfoot,90,120);
+  moveServo(leftfoot,90,130);
+
+  moveServo(lefthip,60,120);
+  moveServo(righthip,60,120);
+  }
+
+  moveServo(leftfoot,130,90);
+  moveServo(righthip,120,90);
+  moveServo(lefthip,120,90);
+  moveServo(rightfoot,120,90);
+
+}
+
+void stepBackward(int steps)
 {
   moveServo(rightfoot,90,60);
   moveServo(leftfoot,90,50);
