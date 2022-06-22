@@ -2,8 +2,8 @@
  * The default upload handler implementation.
  * @file AutoConnectUploadImpl.h
  * @author hieromon@gmail.com
- * @version  0.9.9
- * @date 2019-05-25
+ * @version  1.2.0
+ * @date 2020-05-29
  * @copyright  MIT license.
  */
 
@@ -20,7 +20,11 @@
 #include <SPI.h>
 #include <SD.h>
 #define FS_NO_GLOBALS
+#ifdef AUTOCONNECT_USE_SPIFFS
 #include <FS.h>
+#else
+#include <LittleFS.h>
+#endif
 
 // Types branching to be code commonly for the file system classes with
 // ESP8266 and ESP32.
@@ -74,7 +78,7 @@ void AutoConnectUploadHandler::upload(const String& requestUri, const HTTPUpload
     break;
   case UPLOAD_FILE_ABORTED:
   case UPLOAD_FILE_END:
-    _close();
+    _close(upload.status);
     break;
   }
 }
@@ -83,7 +87,7 @@ void AutoConnectUploadHandler::upload(const String& requestUri, const HTTPUpload
 class AutoConnectUploadFS : public AutoConnectUploadHandler {
  public:
   explicit AutoConnectUploadFS(SPIFFST& media) : _media(&media) {}
-  ~AutoConnectUploadFS() { _close(); }
+  ~AutoConnectUploadFS() { _close(HTTPUploadStatus::UPLOAD_FILE_END); }
 
  protected:
   bool  _open(const char* filename, const char* mode) override {
@@ -106,7 +110,8 @@ class AutoConnectUploadFS : public AutoConnectUploadHandler {
       return -1;
   }
 
-  void  _close(void) override {
+  void  _close(const HTTPUploadStatus status) override {
+    AC_UNUSED(status);
     if (_file)
       _file.close();
     _media->end();
@@ -142,7 +147,7 @@ class AutoConnectUploadFS : public AutoConnectUploadHandler {
 class AutoConnectUploadSD : public AutoConnectUploadHandler {
  public:
   explicit AutoConnectUploadSD(SDClassT& media, const uint8_t cs = AUTOCONNECT_SD_CS, const uint32_t speed = AUTOCONNECT_SD_SPEED) : _media(&media), _cs(cs), _speed(speed) {}
-  ~AutoConnectUploadSD() { _close(); }
+  ~AutoConnectUploadSD() { _close(HTTPUploadStatus::UPLOAD_FILE_END); }
 
  protected:
   bool  _open(const char* filename, const char* mode) override {
@@ -187,6 +192,9 @@ class AutoConnectUploadSD : public AutoConnectUploadHandler {
         break;
       }
 #endif
+#ifndef AC_DEBUG
+      AC_UNUSED(sdVerify);
+#endif
       AC_DBG("%s mounted\n", sdVerify);
       _file = _media->open(filename, oflag);
       return _file != false;
@@ -202,7 +210,8 @@ class AutoConnectUploadSD : public AutoConnectUploadHandler {
       return -1;
   }
 
-  void  _close(void) override {
+  void  _close(const HTTPUploadStatus status) override {
+    AC_UNUSED(status);
     if (_file)
       _file.close();
     AutoConnectUtil::end<SDClassT>(_media);

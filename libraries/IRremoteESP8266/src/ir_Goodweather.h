@@ -1,7 +1,9 @@
-// Goodweather A/C
-//
 // Copyright 2019 ribeirodanielf
 // Copyright 2019 David Conran
+
+/// @file
+/// @brief Support for Goodweather compatible HVAC protocols.
+/// @see https://github.com/crankyoldgit/IRremoteESP8266/issues/697
 
 // Supports:
 //   Brand: Goodweather,  Model: ZH/JT-03 remote
@@ -20,37 +22,43 @@
 #include "IRsend_test.h"
 #endif
 
-// Ref:
-//   https://github.com/markszabo/IRremoteESP8266/issues/697
+/// Native representation of a Goodweather A/C message.
+union GoodweatherProtocol {
+  uint64_t raw;  ///< The state of the IR remote in IR code form.
+  struct {
+    // Byte 0
+    uint8_t :8;
+    // Byte 1
+    uint8_t Light :1;
+    uint8_t       :2;
+    uint8_t Turbo :1;
+    uint8_t       :0;
+    // Byte 2
+    uint8_t Command :4;
+    uint8_t         :0;
+    // Byte 3
+    uint8_t Sleep   :1;
+    uint8_t Power   :1;
+    uint8_t Swing   :2;
+    uint8_t AirFlow :1;
+    uint8_t Fan     :2;
+    uint8_t         :0;
+    // Byte 4
+    uint8_t Temp  :4;
+    uint8_t       :1;
+    uint8_t Mode  :3;
+    uint8_t       :0;
+  };
+};
 
 // Constants
-
 // Timing
-const uint16_t kGoodweatherBitMark = 640;
+const uint16_t kGoodweatherBitMark = 580;
 const uint16_t kGoodweatherOneSpace = 580;
-const uint16_t kGoodweatherZeroSpace = 1600;
-const uint16_t kGoodweatherHdrMark = 6800;
-const uint16_t kGoodweatherHdrSpace = 6800;
-
-// Masks
-const uint8_t kGoodweatherBitLight = 8;
-const uint64_t kGoodweatherLightMask = 0x1ULL << kGoodweatherBitLight;
-const uint8_t kGoodweatherBitTurbo = kGoodweatherBitLight + 3;  // 11
-const uint64_t kGoodweatherTurboMask = 0x1ULL << kGoodweatherBitTurbo;
-const uint8_t kGoodweatherBitCommand = kGoodweatherBitTurbo + 5;  // 16
-const uint64_t kGoodweatherCommandMask = 0xFULL << kGoodweatherBitCommand;
-const uint8_t kGoodweatherBitSleep = kGoodweatherBitCommand + 8;  // 24
-const uint64_t kGoodweatherSleepMask = 0x1ULL << kGoodweatherBitSleep;
-const uint8_t kGoodweatherBitPower = kGoodweatherBitSleep + 1;  // 25
-const uint64_t kGoodweatherPowerMask = 0x1ULL << kGoodweatherBitPower;
-const uint8_t kGoodweatherBitSwing = kGoodweatherBitPower + 1;  // 26
-const uint64_t kGoodweatherSwingMask = 0x3ULL << kGoodweatherBitSwing;
-const uint8_t kGoodweatherBitFan = kGoodweatherBitSwing + 3;  // 29
-const uint64_t kGoodweatherFanMask = 0x3ULL << kGoodweatherBitFan;
-const uint8_t kGoodweatherBitTemp = kGoodweatherBitFan + 3;  // 32
-const uint64_t kGoodweatherTempMask = 0xFULL << kGoodweatherBitTemp;
-const uint8_t kGoodweatherBitMode = kGoodweatherBitTemp + 5;  // 37
-const uint64_t kGoodweatherModeMask = 0x7ULL << kGoodweatherBitMode;
+const uint16_t kGoodweatherZeroSpace = 1860;
+const uint16_t kGoodweatherHdrMark = 6820;
+const uint16_t kGoodweatherHdrSpace = 6820;
+const uint8_t  kGoodweatherExtraTolerance = 12;  // +12% extra
 
 // Modes
 const uint8_t kGoodweatherAuto = 0b000;
@@ -58,6 +66,7 @@ const uint8_t kGoodweatherCool = 0b001;
 const uint8_t kGoodweatherDry =  0b010;
 const uint8_t kGoodweatherFan =  0b011;
 const uint8_t kGoodweatherHeat = 0b100;
+// Swing
 const uint8_t kGoodweatherSwingFast = 0b00;
 const uint8_t kGoodweatherSwingSlow = 0b01;
 const uint8_t kGoodweatherSwingOff =  0b10;
@@ -82,55 +91,64 @@ const uint8_t kGoodweatherCmdHold     = 0x08;
 const uint8_t kGoodweatherCmdSleep    = 0x09;
 const uint8_t kGoodweatherCmdTurbo    = 0x0A;
 const uint8_t kGoodweatherCmdLight    = 0x0B;
+// PAD EOF
+const uint64_t kGoodweatherStateInit  = 0xD50000000000;
 
 
 // Classes
+/// Class for handling detailed Goodweather A/C messages.
 class IRGoodweatherAc {
  public:
-  explicit IRGoodweatherAc(uint16_t pin);
-
+  explicit IRGoodweatherAc(const uint16_t pin, const bool inverted = false,
+                           const bool use_modulation = true);
   void stateReset(void);
 #if SEND_GOODWEATHER
   void send(const uint16_t repeat = kGoodweatherMinRepeat);
-  uint8_t calibrate(void) { return _irsend.calibrate(); }
+  /// Run the calibration to calculate uSec timing offsets for this platform.
+  /// @return The uSec timing offset needed per modulation of the IR Led.
+  /// @note This will produce a 65ms IR signal pulse at 38kHz.
+  ///   Only ever needs to be run once per object instantiation, if at all.
+  int8_t calibrate(void) { return _irsend.calibrate(); }
 #endif  // SEND_GOODWEATHER
   void begin(void);
   void on(void);
   void off(void);
   void setPower(const bool on);
-  bool getPower(void);
+  bool getPower(void) const;
   void setTemp(const uint8_t temp);
-  uint8_t getTemp(void);
+  uint8_t getTemp(void) const;
   void setFan(const uint8_t speed);
-  uint8_t getFan(void);
+  uint8_t getFan(void) const;
   void setMode(const uint8_t mode);
-  uint8_t getMode();
+  uint8_t getMode(void) const;
   void setSwing(const uint8_t speed);
-  uint8_t getSwing(void);
+  uint8_t getSwing(void) const;
   void setSleep(const bool toggle);
-  bool getSleep(void);
+  bool getSleep(void) const;
   void setTurbo(const bool toggle);
-  bool getTurbo(void);
+  bool getTurbo(void) const;
   void setLight(const bool toggle);
-  bool getLight(void);
+  bool getLight(void) const;
   void setCommand(const uint8_t cmd);
-  uint8_t getCommand(void);
+  uint8_t getCommand(void) const;
   uint64_t getRaw(void);
   void setRaw(const uint64_t state);
-  uint8_t convertMode(const stdAc::opmode_t mode);
-  uint8_t convertFan(const stdAc::fanspeed_t speed);
-  uint8_t convertSwingV(const stdAc::swingv_t swingv);
+  static uint8_t convertMode(const stdAc::opmode_t mode);
+  static uint8_t convertFan(const stdAc::fanspeed_t speed);
+  static uint8_t convertSwingV(const stdAc::swingv_t swingv);
   static stdAc::opmode_t toCommonMode(const uint8_t mode);
   static stdAc::fanspeed_t toCommonFanSpeed(const uint8_t speed);
-  stdAc::state_t toCommon(void);
-  String toString();
+  stdAc::state_t toCommon(void) const;
+  String toString(void) const;
 #ifndef UNIT_TEST
 
  private:
-  IRsend _irsend;
-#else
-  IRsendTest _irsend;
-#endif
-  uint64_t remote;  // The state of the IR remote in IR code form.
+  IRsend _irsend;  ///< Instance of the IR send class
+#else  // UNIT_TEST
+  /// @cond IGNORE
+  IRsendTest _irsend;  ///< Instance of the testing IR send class
+  /// @endcond
+#endif  // UNIT_TEST
+  GoodweatherProtocol _;
 };
 #endif  // IR_GOODWEATHER_H_

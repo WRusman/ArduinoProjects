@@ -1,8 +1,9 @@
 # AutoConnect for ESP8266/ESP32
 
+[![GitHub release](https://img.shields.io/github/v/release/Hieromon/AutoConnect)](https://github.com/Hieromon/AutoConnect/releases)
 [![arduino-library-badge](https://www.ardu-badge.com/badge/AutoConnect.svg?)](https://www.ardu-badge.com/AutoConnect)
-[![GitHub release](https://img.shields.io/github/release/Hieromon/AutoConnect.svg)](https://github.com/Hieromon/AutoConnect/releases)
 [![Build Status](https://travis-ci.org/Hieromon/AutoConnect.svg?branch=master)](https://travis-ci.org/Hieromon/AutoConnect)
+[![License](https://img.shields.io/github/license/Hieromon/AutoConnect)](https://github.com/Hieromon/AutoConnect/blob/master/LICENSE)
 
 An Arduino library for ESP8266/ESP32 WLAN configuration at run time with web interface. 
 
@@ -100,6 +101,60 @@ Full documentation is available on https://Hieromon.github.io/AutoConnect, some 
 - [FAQ](https://hieromon.github.io/AutoConnect/faq.html).
 
 ## Change log
+
+### [1.2.2] Dec. 13, 2020
+
+- Fixed an issue where OTA updates would crash on the ESP32 platform. (issue #284)
+
+### [1.2.1] Dec. 5, 2020
+
+- Fixed that not declared error with `AUTOCONNECT_NOUSE_JSON`. (issue #282)
+
+### [1.2.0] Dec. 3, 2020
+- Supports LittleFS file system with ESP8266 platform.
+- Supports HTTP authentication. (issue #171)
+- Supports AutoConnectConfig::preserveAPMode setting. (issue #210)
+- Supports an **onConnect** exit.
+- Supports a **whileCaptivePortal** exit. (issue #149, issue #244)
+- Enhanced ticker to work even in handleClient loop.
+- Enhanced the ability to upload a regular file with AutoConnectOTA. (issue #236)
+- Enhanced AutoConnectInput to allow accepts password and number type. (issue #237, issue #255)
+- Enhanced handleClient to launch the captive portal when losing WiFi connection.
+- Added **getEEPROMUsedSize** that notifies the occupied size of the credential storage area. (issue #209)
+- Added the **append** and the **detach** function that can be dynamically AutoConnectAux attaching and detaching. (issue #230)
+- Added **AUTOCONNECT_APKEY_SSID** definition to seek access points by SSID. (issue #251)
+- Added AutoConnectConfig::beginTimeout setting. (issue #247)
+- Improved atuoReconnect to work even in handleClient loop. (issue #234, issue #251)
+- Fixed incorrect connection wait time. (issue #216)
+- Fixed an exception in the AutoConnect::end function.
+- Avoids an empty-body warning when AC_DEBUG is disabled. (issue #218)
+- Fixed not being able to specify channel ID with a mqttRSSI.ino example. (issue #262)
+- Fixed an invalid SPIFFS compile error with ESP32.
+- Fixed a core panic in the regex with ESP32.
+- Fixed posterior being disabled in AutoConnectElement.
+- Fixed deficiently forward references with HandleClient.ino example. (PR #275)
+
+### [1.1.7] Apr. 19, 2020
+- Fixed Apply button not work. (issue #206)
+
+### [1.1.6] Apr. 17, 2020
+- Fixed OTA page translation not work. (issue #204)
+
+### [1.1.5] Apr. 15, 2020
+- Changed the bootUri behavior to be an automatic pop-up at the captive portal. (PR #181)
+- Supports AutoConnect menu configuration.
+- Supports the built-in OTA feature.
+- Supports an attempt order when available APs would be found multiple, and RSSI lower bound on AP signal strength. This option can specify the order of connection attempting according to the WiFi signal strength indicated with RSSI. (PR #187)
+
+### [1.1.4] Feb. 14, 2020
+- Supports for overriding text of the menu items with user-defined labels.
+- Fixed the compiler warning with experimental WiFi mode of ESP8266.
+
+### [1.1.3] Jan. 1, 2020
+- Added AUTOCONNECT_NOUSE_JSON directive. (issue #167)
+- Removed compiler warning of unused.
+- Improved Config New button behavior. (issue #150)
+- Fixed relocate Config New menu URI inability.
 
 ### [1.1.2] Oct. 22, 2019
 - Fixed crash when no SSID found.

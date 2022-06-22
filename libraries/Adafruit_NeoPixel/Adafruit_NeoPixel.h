@@ -231,7 +231,12 @@ class Adafruit_NeoPixel {
     @return  1 or true if show() will start sending immediately, 0 or false
              if show() would block (meaning some idle time is available).
   */
-  boolean           canShow(void) const { return (micros()-endTime) >= 300L; }
+  bool canShow(void) {
+    if (endTime > micros()) {
+      endTime = micros();
+    }
+    return (micros() - endTime) >= 300L;
+  }
   /*!
     @brief   Get a pointer directly to the NeoPixel data buffer in RAM.
              Pixel data is stored in a device-native format (a la the NEO_*
@@ -335,9 +340,9 @@ class Adafruit_NeoPixel {
  protected:
 
 #ifdef NEO_KHZ400  // If 400 KHz NeoPixel support enabled...
-  boolean           is800KHz;   ///< true if 800 KHz pixels
+  bool              is800KHz;   ///< true if 800 KHz pixels
 #endif
-  boolean           begun;      ///< true if begin() previously called
+  bool              begun;      ///< true if begin() previously called
   uint16_t          numLEDs;    ///< Number of RGB LEDs in strip
   uint16_t          numBytes;   ///< Size of 'pixels' buffer below
   int16_t           pin;        ///< Output pin number (-1 if not yet set)
@@ -352,7 +357,7 @@ class Adafruit_NeoPixel {
   volatile uint8_t *port;       ///< Output PORT register
   uint8_t           pinMask;    ///< Output PORT bitmask
 #endif
-#ifdef ARDUINO_ARCH_STM32
+#if defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_ARDUINO_CORE_STM32)
   GPIO_TypeDef *gpioPort;       ///< Output GPIO PORT
   uint32_t gpioPin;             ///< Output GPIO PIN
 #endif

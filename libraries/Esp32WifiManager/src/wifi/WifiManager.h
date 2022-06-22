@@ -12,15 +12,19 @@
 #include <WiFi.h>
 #include <esp_wifi.h>
 #define rescanIncrement 2
-
+#define timeoutTime 10000
+#define PASS_LEN_KEY 12
 enum connectionState {
 	firstStart,
 	Disconnected,
 	InitialConnect,
+	apconnected,
 	Connected,
 	HaveSSIDSerial,
 	reconnect,
-	APWaitingForSTA
+	APWaitingForSTA,
+	scanRunning,
+	scanDone
 };
 
 class WifiManager {
@@ -41,10 +45,15 @@ private:
 	long timeSinceAPPrint =0;
 	long timeSinceAPStart =0;
 	enum connectionState state=firstStart;
+	enum connectionState whatToDoAfterScanning=reconnect;
 	bool setupDone = false;
+	void runSerialLoop();
+	void setPassword(String ssid,String pass);
+	String getPassword(String ssid,String defaultPass="none");
+	String getPasswordKey(String ssid);
 public:
 	/**
-	 * Static reference used by teh wifi event to pass teh event from the static context to the object context.
+	 * Static reference used by the wifi event to pass the event from the static context to the object context.
 	 */
 	static WifiManager * staticRef;
 	/**
@@ -75,6 +84,10 @@ public:
 	 */
 	void setupAP();
 	/**
+	 * Start the manager but re-scan the environment first
+	 */
+	void setupScan();
+	/**
 	 * A formated print statement of the current state
 	 */
 	void printState();
@@ -102,6 +115,14 @@ public:
 	 * Force a disconnection and rescan of the system
 	 */
 	void disconnect();
+	/**
+	 * Update AP list
+	 *
+	 * This function will update the AP list, then reconnect
+	 * @return the current number of availible AP's
+	 * @Note this will take a few seconds and is BLOCKING during that time
+	 */
+	int updateApList();
 };
 
 #endif /* LIBRARIES_ESP32SIMPLEPACKETCOMS_SRC_WIFI_WIFIMANAGER_H_ */

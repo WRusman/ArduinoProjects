@@ -6,7 +6,7 @@
 * TL;DR: The IR LED needs to be driven by a transistor for a good result.
 *
 * Suggested circuit:
-*     https://github.com/markszabo/IRremoteESP8266/wiki#ir-sending
+*     https://github.com/crankyoldgit/IRremoteESP8266/wiki#ir-sending
 *
 * Common mistakes & tips:
 *   * Don't just connect the IR LED directly to the pin, it won't
@@ -38,7 +38,7 @@ void printState() {
   // Display the encoded IR sequence.
   unsigned char* ir_code = ac.getRaw();
   Serial.print("IR Code: 0x");
-  for (uint8_t i = 0; i < kToshibaACStateLength; i++)
+  for (uint8_t i = 0; i < ac.getStateLength(); i++)
     Serial.printf("%02X", ir_code[i]);
   Serial.println();
 }

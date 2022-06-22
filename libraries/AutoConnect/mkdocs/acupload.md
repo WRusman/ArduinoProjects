@@ -1,15 +1,15 @@
 ## Uploading file from Web Browser
 
-If you have to write some data individually to the ESP8266/ESP32 module for the sketch behavior, the [AutoConnectFile](acelements.md#autoconnectfile) element will assist with your wants implementation. The AutoConnectFile element produces an HTML `<input type="file">` tag and can save uploaded file to the flash or external SD of the ESP8266/ESP32 module. The handler for saving is built into AutoConnect. You can use it to inject any sketch data such as the initial values for the custom Web page into the ESP module via OTA without using the sketch data upload tool of Arduino-IDE.
+If you have to write some data individually to the ESP8266/ESP32 module for the Sketch behavior, the [AutoConnectFile](acelements.md#autoconnectfile) element will assist with your wants implementation. The AutoConnectFile element produces an HTML `<input type="file">` tag and can save uploaded file to the flash or external SD of the ESP8266/ESP32 module. The handler for saving is built into AutoConnect. You can use it to inject any sketch data such as the initial values for the custom Web page into the ESP module via OTA without using the Sketch data upload tool of Arduino-IDE.
 <p style="display:block;margin-left:auto;margin-right:auto;width:603px;height:368px;border:1px solid lightgray;"><img data-gifffer="images/upload.gif" data-gifffer-width="601" data-gifffer-height="366""/></p>
 
 ## Basic steps of the file upload sketch
 
-Here is the basic procedure of the sketch which can upload files from the client browser using AutoConnectFile:[^1]
+Here is the basic procedure of the Sketch which can upload files from the client browser using AutoConnectFile:[^1]
 
 [^1]:The AutoConnectFile element can be used with other AutoConnectElements on the same page.
 
-1. Place AutoConnectFile on a custom Web page by writing JSON or constructor code directly with the sketch.
+1. Place AutoConnectFile on a custom Web page by writing JSON or constructor code directly with the Sketch.
 2. Place other AutoConnectElements as needed.
 3. Place AutoConnectSubmit on the same custom Web page.
 4. Perform the following process in the on-handler of submitting destination:
@@ -145,7 +145,7 @@ Also, the substance of AC_File_SD (sd) is a FAT file of Arduino SD library porte
 `AUTOCONNECT_SD_SPEED` defines SPI clock speed depending on the connected device.
 
 !!! info "Involves both the begin() and the end()"
-    The built-in uploader executes the begin and end functions regardless of the sketch whence the file system of the device will terminate with the uploader termination. Therefore, to use the device in the sketch after uploading, you need to **restart it with the begin** function.
+    The built-in uploader executes the begin and end functions regardless of the Sketch whence the file system of the device will terminate with the uploader termination. Therefore, to use the device in the Sketch after uploading, you need to **restart it with the begin** function.
 
 ## When it will be uploaded
 
@@ -166,7 +166,7 @@ AutoConnetFile saves the uploaded file with the file name you selected by `<inpu
 You can output the file to any device using a custom uploader by specifying [**extern**](acjson.md#acfile) with the [**store**](acjson.md#acfile) attribute of [AutoConnectFile](acjson.md#acfile) (or specifying [**AC_File_Extern**](acelements.md#store) for the [**store**](apielements.md#store) member variable) and can customize the uploader according to the need to upload files to other than Flash or SD. Implements your own uploader with inheriting the [**AutoConnectUploadHandler**](#upload-handler-base-class) class which is the base class of the upload handler.
 
 !!! note "It's not so difficult"
-    Implementing the custom uploader requires a little knowledge of the c++ language. If you are less attuned to programming c++, you may find it difficult. But don't worry. You can make it in various situations by just modifying the sketch skeleton that appears at the end of this page.
+    Implementing the custom uploader requires a little knowledge of the c++ language. If you are less attuned to programming c++, you may find it difficult. But don't worry. You can make it in various situations by just modifying the Sketch skeleton that appears at the end of this page.
 
 ### <i class="fa fa-code"></i> Upload handler base class
 
@@ -189,8 +189,9 @@ The actual upload process is handled by the three private functions above, and t
 ```cpp
 public virtual void upload(const String& requestUri, const HTTPUpload& upload)
 ```
+
 <dl class="apidl">
-    <dt>**Parameters**</dt>
+    <dt><strong>Parameters</strong></dt>
     <dd><span class="apidef">requestUri</span><span class="apidesc">URI of upload request source.</span></dd>
     <dd><span class="apidef">upload</span><span class="apidesc">A data structure of the upload file as <b>HTTPUpload</b>. It is defined in the ESP8266WebServer (WebServer as ESP32) library as follows:
 
@@ -209,7 +210,7 @@ typedef struct {
     </span></dd>
 </dl>
 
-The upload handler needs to implement processing based on the enumeration value of HTTPUpload.status as **HTTPUploadStatus** enum type. HTTPUploadStatus enumeration is as follows:
+An upload handler needs to implement a procedure corresponding with **HTTPUploadStatus** enum value indicated by the uploading process of ESP8266WebServer class, which contained in HTTPUpload.status as following values:
 
 - **`UPLOAD_FILE_START`** : Invokes to the \_open.
 - **`UPLOAD_FILE_WRITE`** : Invokes to the \_write.
@@ -221,11 +222,12 @@ The \_open function will be invoked when HTTPUploadStatus is **UPLOAD_FILE_START
 ```cpp
 protected virtual bool _open(const char* filename, const char* mode) = 0
 ```
+
 <dl class="apidl">
-    <dt>**Parameters**</dt>
+    <dt><strong>Parameters</strong></dt>
     <dd><span class="apidef">filename</span><span class="apidesc">Uploading file name.</span></dd>
     <dd><span class="apidef">mode</span><span class="apidesc">An indicator for the file access mode, a "w" for writing.</span></dd>
-    <dt>**Return value**</dt>
+    <dt><strong>Return value</strong></dt>
     <dd><span class="apidef">true</span><span class="apidesc">File open successful.</span></dd>
     <dd><span class="apidef">false</span><span class="apidesc">Failed to open.</span></dd>
 </dl>
@@ -233,13 +235,14 @@ protected virtual bool _open(const char* filename, const char* mode) = 0
 The \_write function will be invoked when HTTPUploadStatus is **UPLOAD_FILE_WRITE**. The content of the upload file is divided and the \_write will be invoked in multiple times. Usually, the implementation of an inherited class will write data.
 
 ```cpp
-protected virtual size_t _write(const uint8_t *buf, const size_t size))= 0
+protected virtual size_t _write(const uint8_t *buf, const size_t size) = 0
 ```
+
 <dl class="apidl">
-    <dt>**Parameters**</dt>
+    <dt><strong>Parameters</strong></dt>
     <dd><span class="apidef">buf</span><span class="apidesc">File content block.</span></dd>
     <dd><span class="apidef">size</span><span class="apidesc">File block size to write.</span></dd>
-    <dt>**Return value**</dt>
+    <dt><strong>Return value</strong></dt>
     <dd>Size written.</dd>
 </dl>
 
@@ -292,13 +295,14 @@ In order to upload a file by the custom uploader, it is necessary to register it
 ```cpp
 void AutoConnectAux::onUpload<T>(T& uploadClass)
 ```
+
 <dl class="apidl">
-    <dt>**Parameters**</dt>
+    <dt><strong>Parameters</strong></dt>
     <dd><span class="apidef">T</span><span class="apidesc">Specifies a class name of the custom uploader. This class name is a class that you implemented by inheriting AutoConnectUploadHandler for custom upload.</span></dd>
     <dd><span class="apidef">uploadClass</span><span class="apidesc">Specifies the custom upload class instance.</span></dd>
 </dl>
 
-The rough structure of the sketches that completed these implementations will be as follows:
+The rough structure of the Sketches that completed these implementations will be as follows:
 
 ```cpp
 #include <ESP8266WiFi.h>

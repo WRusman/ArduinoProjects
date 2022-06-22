@@ -8,7 +8,7 @@ For details, please refer to the project page.
 https://hieromon.github.io/AutoConnect/howtoembed.html#used-with-mqtt-as-a-client-application
 
 This example is based on the environment as of March 20, 2018.
-Copyright (c) 2018 Hieromon Ikasamo.
+Copyright (c) 2020 Hieromon Ikasamo.
 This software is released under the MIT License.
 https://opensource.org/licenses/MIT
 */
@@ -19,15 +19,12 @@ https://opensource.org/licenses/MIT
 #define GET_CHIPID()  (ESP.getChipId())
 #elif defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>
-#include <SPIFFS.h>
 #include <HTTPClient.h>
 #define GET_CHIPID()  ((uint16_t)(ESP.getEfuseMac()>>32))
 #endif
-#include <FS.h>
 #include <PubSubClient.h>
 #include <AutoConnect.h>
 
-#define PARAM_FILE      "/param.json"
 #define AUX_SETTING_URI "/mqtt_setting"
 #define AUX_SAVE_URI    "/mqtt_save"
 #define AUX_CLEAR_URI   "/mqtt_clear"
@@ -54,7 +51,6 @@ ACInput(channelid, "", "Channel ID", "^[0-9]{6}$");
 ACInput(userkey, "", "User Key");
 ACInput(apikey, "", "API Key");
 ACElement(newline, "<hr>");
-ACCheckbox(uniqueid, "unique", "Use APID unique");
 ACRadio(period, { "30 sec.", "60 sec.", "180 sec." }, "Update period", AC_Vertical, 1);
 ACSubmit(save, "Start", AUX_SAVE_URI);
 ACSubmit(discard, "Discard", "/");
@@ -69,9 +65,7 @@ AutoConnectAux mqtt_setting(AUX_SETTING_URI, "MQTT Setting", true, {
   userkey,
   apikey,
   newline,
-  uniqueid,
   period,
-  newline,
   save,
   discard
 });
@@ -161,7 +155,6 @@ String saveParams(AutoConnectAux& aux, PageArgument& args) {
   echo += "User Key: " + userkey.value + "<br>";
   echo += "API Key: " + apikey.value + "<br>";
   echo += "Update period: " + String(updateInterval / 1000) + " sec.<br>";
-  echo += "Use APID unique: " + String(uniqueid.checked == true ? "true" : "false") + "<br>";
   parameters.value = echo;
 
   return String("");
@@ -174,11 +167,12 @@ void handleRoot() {
     "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
     "</head>"
     "<body>"
-    "<iframe width=\"450\" height=\"260\" style=\"transform:scale(0.79);-o-transform:scale(0.79);-webkit-transform:scale(0.79);-moz-transform:scale(0.79);-ms-transform:scale(0.79);transform-origin:0 0;-o-transform-origin:0 0;-webkit-transform-origin:0 0;-moz-transform-origin:0 0;-ms-transform-origin:0 0;border: 1px solid #cccccc;\" src=\"https://thingspeak.com/channels/454951/charts/1?bgcolor=%23ffffff&color=%23d62020&dynamic=true&type=line\"></iframe>"
+    "<iframe width=\"450\" height=\"260\" style=\"transform:scale(0.79);-o-transform:scale(0.79);-webkit-transform:scale(0.79);-moz-transform:scale(0.79);-ms-transform:scale(0.79);transform-origin:0 0;-o-transform-origin:0 0;-webkit-transform-origin:0 0;-moz-transform-origin:0 0;-ms-transform-origin:0 0;border: 1px solid #cccccc;\" src=\"https://thingspeak.com/channels/{{CHANNEL}}/charts/1?bgcolor=%23ffffff&color=%23d62020&dynamic=true&type=line\"></iframe>"
     "<p style=\"padding-top:5px;text-align:center\">" AUTOCONNECT_LINK(COG_24) "</p>"
     "</body>"
     "</html>";
 
+  content.replace("{{CHANNEL}}", channelid.value);
   WiFiWebServer&  webServer = portal.host();
   webServer.send(200, "text/html", content);
 }
@@ -186,23 +180,24 @@ void handleRoot() {
 // Clear channel using ThingSpeak's API.
 void handleClearChannel() {
   HTTPClient  httpClient;
-  WiFiClient  client;
+
   String  endpoint = mqttserver.value;
   endpoint.replace("mqtt", "api");
   String  delUrl = "http://" + endpoint + "/channels/" + channelid.value + "/feeds.json?api_key=" + userkey.value;
 
   Serial.print("DELETE " + delUrl);
-  if (httpClient.begin(client, delUrl)) {
+  if (httpClient.begin(wifiClient, delUrl)) {
     Serial.print(":");
     int resCode = httpClient.sendRequest("DELETE");
-    String  res = httpClient.getString();
+    const String& res = httpClient.getString();
+    Serial.println(String(resCode) + String(",") + res);
     httpClient.end();
-    Serial.println(String(resCode) + "," + res);
   }
   else
     Serial.println(" failed");
 
-  // Returns the redirect response.
+  // Returns the redirect response. The page is reloaded and its contents
+  // are updated to the state after deletion.
   WiFiWebServer&  webServer = portal.host();
   webServer.sendHeader("Location", String("http://") + webServer.client().localIP().toString() + String("/"));
   webServer.send(302, "text/plain", "");
@@ -214,15 +209,11 @@ void setup() {
   delay(1000);
   Serial.begin(115200);
   Serial.println();
-  SPIFFS.begin();
 
-  if (uniqueid.checked) {
-    config.apid = String("ESP") + "-" + String(GET_CHIPID(), HEX);
-    Serial.println("apid set to " + config.apid);
-  }
-
-  config.bootUri = AC_ONBOOTURI_HOME;
+  // Reconnect and continue publishing even if WiFi is disconnected.
   config.homeUri = "/";
+  config.autoReconnect = true;
+  config.reconnectInterval = 1;
   portal.config(config);
 
   // Join the custom Web pages and register /mqtt_save handler
@@ -231,15 +222,13 @@ void setup() {
 
   Serial.print("WiFi ");
   if (portal.begin()) {
+    config.bootUri = AC_ONBOOTURI_HOME;
     Serial.println("connected:" + WiFi.SSID());
     Serial.println("IP:" + WiFi.localIP().toString());
   }
   else {
     Serial.println("connection failed:" + String(WiFi.status()));
-    while (1) {
-      delay(100);
-      yield();
-    }
+    Serial.println("Needs WiFi connection to start publishing messages");
   }
 
   WiFiWebServer&  webServer = portal.host();
@@ -248,16 +237,19 @@ void setup() {
 }
 
 void loop() {
-  portal.handleClient();
-  if (updateInterval > 0) {
-    if (millis() - lastPub > updateInterval) {
-      if (!mqttClient.connected()) {
-        mqttConnect();
+  if (WiFi.status() == WL_CONNECTED) {
+    // MQTT publish control
+    if (updateInterval > 0) {
+      if (millis() - lastPub > updateInterval) {
+        if (!mqttClient.connected()) {
+          mqttConnect();
+        }
+        String item = String("field1=") + String(getStrength(7));
+        mqttPublish(item);
+        mqttClient.loop();
+        lastPub = millis();
       }
-      String item = String("field1=") + String(getStrength(7));
-      mqttPublish(item);
-      mqttClient.loop();
-      lastPub = millis();
     }
   }
+  portal.handleClient();
 }

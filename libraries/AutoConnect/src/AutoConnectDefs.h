@@ -2,8 +2,8 @@
  * Predefined AutoConnect configuration parameters.
  * @file AutoConnectDefs.h
  * @author hieromon@gmail.com
- * @version  1.1.0
- * @date 2019-10-11
+ * @version  1.2.2
+ * @date 2020-12-11
  * @copyright  MIT license.
  */
 
@@ -18,19 +18,45 @@
 #define AC_DEBUG_PORT Serial
 #endif // !AC_DEBUG_PORT
 #ifdef AC_DEBUG
-#define AC_DBG_DUMB(...) do {AC_DEBUG_PORT.printf( __VA_ARGS__ );} while (0)
-#define AC_DBG(...) do {AC_DEBUG_PORT.print("[AC] "); AC_DEBUG_PORT.printf( __VA_ARGS__ );} while (0)
+#define AC_DBG_DUMB(fmt, ...) do {AC_DEBUG_PORT.printf_P((PGM_P)PSTR(fmt), ## __VA_ARGS__ );} while (0)
+#define AC_DBG(fmt, ...) do {AC_DEBUG_PORT.printf_P((PGM_P)PSTR("[AC] " fmt), ## __VA_ARGS__ );} while (0)
 #else
-#define AC_DBG(...)
-#define AC_DBG_DUMB(...)
+#define AC_DBG(...) do {(void)0;} while(0)
+#define AC_DBG_DUMB(...) do {(void)0;} while(0)
 #endif // !AC_DEBUG
 
 // Indicator to specify that AutoConnectAux handles elements with JSON.
 // Comment out the AUTOCONNECT_USE_JSON macro to detach the ArduinoJson.
+#ifndef AUTOCONNECT_NOUSE_JSON
 #define AUTOCONNECT_USE_JSON
 
 // Indicator of whether to use the AutoConnectUpdate feature.
 #define AUTOCONNECT_USE_UPDATE
+#endif
+
+// SPIFFS has deprecated on EP8266 core. This flag indicates that
+// the migration to LittleFS has not completed.
+//#define AC_USE_SPIFFS
+
+// Deploys SPIFFS usage flag to the global.
+#if defined(ARDUINO_ARCH_ESP8266)
+#ifdef AC_USE_SPIFFS
+#define AUTOCONNECT_USE_SPIFFS
+#endif
+#elif defined(ARDUINO_ARCH_ESP32)
+#define AUTOCONNECT_USE_SPIFFS
+#endif
+
+// Whether or not it points to the target access point is determined by
+// matching the SSID or BSSID. The default key to collate is BSSID.
+// The BSSID is usually fixed to the MAC address unique to its AP,
+// but when using some mobile hotspots, the BSSID may change even for
+// the same access point.
+// If you operate inconvenience in aiming at the access point by BSSID,
+// you can change the collation key to SSID by uncommenting the below.
+// If the AUTOCONNECT_APKEY_SSID is defined at compile-time, the access
+// point will be collated by the SSID.
+//#define AUTOCONNECT_APKEY_SSID
 
 // Predefined parameters
 // SSID that Captive portal started.
@@ -96,6 +122,11 @@
 #define AUTOCONNECT_URI_UPDATE_PROGRESS AUTOCONNECT_URI "/update_progress"
 #define AUTOCONNECT_URI_UPDATE_RESULT   AUTOCONNECT_URI "/update_result"
 
+// Number of seconds in uint time [s]
+#ifndef AUTOCONNECT_UNITTIME
+#define AUTOCONNECT_UNITTIME    30
+#endif
+
 // Time-out limitation when AutoConnect::begin [ms]
 #ifndef AUTOCONNECT_TIMEOUT
 #define AUTOCONNECT_TIMEOUT     30000
@@ -111,9 +142,9 @@
 #define AUTOCONNECT_STARTUPTIME (AUTOCONNECT_TIMEOUT/1000)
 #endif // !AUTOCONNECT_STARTUPTIME
 
-// Response wait time until requesting a result of connection attempt, uint:[s] as String
+// Response wait time until requesting a result of connection attempt, uint:[ms]
 #ifndef AUTOCONNECT_RESPONSE_WAITTIME
-#define AUTOCONNECT_RESPONSE_WAITTIME "2"
+#define AUTOCONNECT_RESPONSE_WAITTIME 2000
 #endif // !AUTOCONNECT_RESPONSE_WAITTIME
 
 // Default HTTP port
@@ -158,19 +189,24 @@
 // Flicker pulse width during AP operation (8bit resolution)
 #ifndef AUTOCONNECT_FLICKER_WIDTHAP
 #define AUTOCONNECT_FLICKER_WIDTHAP   96
-#endif // !AUTOCONNECT_FLICKER_WIDTHAPSTA
+#endif // !AUTOCONNECT_FLICKER_WIDTHAP
 // Flicker pulse width while WiFi is not connected (8bit resolution)
 #ifndef AUTOCONNECT_FLICKER_WIDTHDC 
 #define AUTOCONNECT_FLICKER_WIDTHDC   16
 #endif // !AUTOCONNECT_FLICKER_WIDTHDISCON
 // Ticker port
 #ifndef AUTOCONNECT_TICKER_PORT
-#if defined(BUILDIN_LED) || defined(LED_BUILTIN)
+#if defined(BUILTIN_LED) || defined(LED_BUILTIN)
 #define AUTOCONNECT_TICKER_PORT       LED_BUILTIN
 #else  // Native pin for the arduino
 #define AUTOCONNECT_TICKER_PORT       2
 #endif
 #endif
+
+// Lowest WiFi signal strength (RSSI) that can be connected.
+#ifndef AUTOCONNECT_MIN_RSSI
+#define AUTOCONNECT_MIN_RSSI          -120  // No limit
+#endif // !AUTOCONNECT_MIN_RSSI
 
 // ArduinoJson buffer size
 #ifndef AUTOCONNECT_JSONBUFFER_SIZE
@@ -183,7 +219,7 @@
 #define AUTOCONNECT_JSONPSRAM_SIZE      (16* 1024)
 #endif // !AUTOCONNECT_JSONPSRAM_SIZE
 
-// Available HTTP port number for the update [ms]
+// Available HTTP port number for the update
 #ifndef AUTOCONNECT_UPDATE_PORT
 #define AUTOCONNECT_UPDATE_PORT       8000
 #endif // !AUTOCONNECT_UPDATE_PORT
@@ -205,7 +241,7 @@
 
 // Wait timer for rebooting after updated
 #ifndef AUTOCONNECT_UPDATE_WAITFORREBOOT
-#define AUTOCONNECT_UPDATE_WAITFORREBOOT  9000
+#define AUTOCONNECT_UPDATE_WAITFORREBOOT  15000
 #endif // !AUTOCONNECT_UPDATE_WAITFORREBOOT
 
 // A signal value that the board dependent LED turns on.
@@ -226,6 +262,24 @@
 #ifndef AUTOCONNECT_UPDATE_CATALOG_JSONBUFFER_SIZE
 #define AUTOCONNECT_UPDATE_CATALOG_JSONBUFFER_SIZE  256
 #endif // !AUTOCONNECT_UPDATE_CATALOG_JSONBUFFER_SIZE
+
+// HTTP authentication default realm
+#ifndef AUTOCONNECT_AUTH_REALM
+#define AUTOCONNECT_AUTH_REALM        "AUTOCONNECT"
+#endif // !AUTOCONNECT_AUTH_REALM
+
+// Flename pattern that AutoConnectOTA considers to be firmware.
+// The extension used as the criterion for uploading destination is
+// fixed.
+// AUTOCONNECT_UPLOAD_ASFIRMWARE_USE_REGEXP allows you to use regular
+// expressions with the extension to determine the uploading destination.
+#ifndef AUTOCONNECT_UPLOAD_ASFIRMWARE
+#ifdef  AUTOCONNECT_UPLOAD_ASFIRMWARE_USE_REGEXP
+#define AUTOCONNECT_UPLOAD_ASFIRMWARE "^.+\\.bin$"
+#else
+#define AUTOCONNECT_UPLOAD_ASFIRMWARE ".bin"
+#endif
+#endif
 
 // Explicitly avoiding unused warning with token handler of PageBuilder
 #define AC_UNUSED(expr) do { (void)(expr); } while (0)

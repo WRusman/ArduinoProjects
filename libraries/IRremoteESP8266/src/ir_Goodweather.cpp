@@ -1,10 +1,8 @@
 // Copyright 2019 ribeirodanielf
 // Copyright 2019 David Conran
-//
-// Code to emulate Goodweather protocol compatible HVAC devices.
-// Should be compatible with:
-// * ZH/JT-03 remote control
-//
+/// @file
+/// @brief Support for Goodweather compatible HVAC protocols.
+/// @see https://github.com/crankyoldgit/IRremoteESP8266/issues/697
 
 #include "ir_Goodweather.h"
 #include <algorithm>
@@ -14,20 +12,22 @@
 #include "IRrecv.h"
 #include "IRremoteESP8266.h"
 #include "IRsend.h"
+#include "IRtext.h"
 #include "IRutils.h"
 
+using irutils::addBoolToString;
+using irutils::addIntToString;
+using irutils::addLabeledString;
+using irutils::addModeToString;
+using irutils::addFanToString;
+using irutils::addTempToString;
+
 #if SEND_GOODWEATHER
-// Send a Goodweather message.
-//
-// Args:
-//   data: The raw message to be sent.
-//   nbits: Nr. of bits of data in the message. (Default is kGoodweatherBits)
-//   repeat: Nr. of times the message is to be repeated. (Default = 0).
-//
-// Status: ALPHA / Untested.
-//
-// Ref:
-//   https://github.com/markszabo/IRremoteESP8266/issues/697
+/// Send a Goodweather HVAC formatted message.
+/// Status: BETA / Needs testing on real device.
+/// @param[in] data The message to be sent.
+/// @param[in] nbits The number of bits of message to be sent.
+/// @param[in] repeat The number of times the command is to be repeated.
 void IRsend::sendGoodweather(const uint64_t data, const uint16_t nbits,
                              const uint16_t repeat) {
   if (nbits != kGoodweatherBits)
@@ -57,236 +57,271 @@ void IRsend::sendGoodweather(const uint64_t data, const uint16_t nbits,
 }
 #endif  // SEND_GOODWEATHER
 
-IRGoodweatherAc::IRGoodweatherAc(uint16_t pin) : _irsend(pin) { stateReset(); }
+/// Class constructor
+/// @param[in] pin GPIO to be used when sending.
+/// @param[in] inverted Is the output signal to be inverted?
+/// @param[in] use_modulation Is frequency modulation to be used?
+IRGoodweatherAc::IRGoodweatherAc(const uint16_t pin, const bool inverted,
+                                 const bool use_modulation)
+    : _irsend(pin, inverted, use_modulation) { stateReset(); }
 
-void IRGoodweatherAc::stateReset(void) {
-}
+/// Reset the internal state to a fixed known good state.
+void IRGoodweatherAc::stateReset(void) { _.raw = kGoodweatherStateInit; }
 
+/// Set up hardware to be able to send a message.
 void IRGoodweatherAc::begin(void) { _irsend.begin(); }
 
 #if SEND_GOODWEATHER
+/// Send the current internal state as an IR message.
+/// @param[in] repeat Nr. of times the message will be repeated.
 void IRGoodweatherAc::send(const uint16_t repeat) {
-  _irsend.sendGoodweather(remote, kGoodweatherBits, repeat);
+  _irsend.sendGoodweather(getRaw(), kGoodweatherBits, repeat);
 }
 #endif  // SEND_GOODWEATHER
 
-uint64_t IRGoodweatherAc::getRaw(void) { return remote; }
+/// Get a copy of the internal state as a valid code for this protocol.
+/// @return A valid code for this protocol based on the current internal state.
+uint64_t IRGoodweatherAc::getRaw(void) { return _.raw; }
 
-void IRGoodweatherAc::setRaw(const uint64_t state) { remote = state; }
+/// Set the internal state from a valid code for this protocol.
+/// @param[in] state A valid code for this protocol.
+void IRGoodweatherAc::setRaw(const uint64_t state) { _.raw  = state; }
 
-void IRGoodweatherAc::on(void) { this->setPower(true); }
+/// Change the power setting to On.
+void IRGoodweatherAc::on(void) { setPower(true); }
 
-void IRGoodweatherAc::off(void) { this->setPower(false); }
+/// Change the power setting to Off.
+void IRGoodweatherAc::off(void) { setPower(false); }
 
+/// Change the power setting.
+/// @param[in] on true, the setting is on. false, the setting is off.
 void IRGoodweatherAc::setPower(const bool on) {
-  this->setCommand(kGoodweatherCmdPower);
-  if (on)
-    remote |= kGoodweatherPowerMask;
-  else
-    remote &= ~kGoodweatherPowerMask;
+  _.Command = kGoodweatherCmdPower;
+  _.Power = on;
 }
 
-bool IRGoodweatherAc::getPower(void) { return remote & kGoodweatherPowerMask; }
+/// Get the value of the current power setting.
+/// @return true, the setting is on. false, the setting is off.
+bool IRGoodweatherAc::getPower(void) const {
+  return _.Power;
+}
 
-// Set the temp. in deg C
+/// Set the temperature.
+/// @param[in] temp The temperature in degrees celsius.
 void IRGoodweatherAc::setTemp(const uint8_t temp) {
   uint8_t new_temp = std::max(kGoodweatherTempMin, temp);
   new_temp = std::min(kGoodweatherTempMax, new_temp);
-  if (new_temp > this->getTemp()) this->setCommand(kGoodweatherCmdUpTemp);
-  if (new_temp < this->getTemp()) this->setCommand(kGoodweatherCmdDownTemp);
-  remote &= ~kGoodweatherTempMask;
-  remote |= (uint64_t)(new_temp - kGoodweatherTempMin) << kGoodweatherBitTemp;
+  if (new_temp > getTemp()) _.Command = kGoodweatherCmdUpTemp;
+  if (new_temp < getTemp()) _.Command = kGoodweatherCmdDownTemp;
+  _.Temp = new_temp - kGoodweatherTempMin;
 }
 
-// Return the set temp. in deg C
-uint8_t IRGoodweatherAc::getTemp(void) {
-  return ((remote & kGoodweatherTempMask) >> kGoodweatherBitTemp) +
-      kGoodweatherTempMin;
+/// Get the current temperature setting.
+/// @return The current setting for temp. in degrees celsius.
+uint8_t IRGoodweatherAc::getTemp(void) const {
+  return _.Temp + kGoodweatherTempMin;
 }
 
-// Set the speed of the fan
+/// Set the speed of the fan.
+/// @param[in] speed The desired setting.
 void IRGoodweatherAc::setFan(const uint8_t speed) {
+  _.Command = kGoodweatherCmdFan;
   switch (speed) {
     case kGoodweatherFanAuto:
     case kGoodweatherFanLow:
     case kGoodweatherFanMed:
     case kGoodweatherFanHigh:
-      this->setCommand(kGoodweatherCmdFan);
-      remote &= ~kGoodweatherFanMask;
-      remote |= ((uint64_t)speed << kGoodweatherBitFan);
+      _.Fan = speed;
       break;
     default:
-      this->setFan(kGoodweatherFanAuto);
+      _.Fan = kGoodweatherFanAuto;
   }
 }
 
-uint8_t IRGoodweatherAc::getFan() {
-  return (remote & kGoodweatherFanMask) >> kGoodweatherBitFan;
+/// Get the current fan speed setting.
+/// @return The current fan speed.
+uint8_t IRGoodweatherAc::getFan(void) const {
+  return _.Fan;
 }
 
+/// Set the operating mode of the A/C.
+/// @param[in] mode The desired operating mode.
 void IRGoodweatherAc::setMode(const uint8_t mode) {
+  _.Command = kGoodweatherCmdMode;
   switch (mode) {
     case kGoodweatherAuto:
     case kGoodweatherDry:
     case kGoodweatherCool:
     case kGoodweatherFan:
     case kGoodweatherHeat:
-      this->setCommand(kGoodweatherCmdMode);
-      remote &= ~kGoodweatherModeMask;
-      remote |= (uint64_t)mode << kGoodweatherBitMode;
+      _.Mode = mode;
       break;
     default:
-      // If we get an unexpected mode, default to AUTO.
-      this->setMode(kGoodweatherAuto);
+      _.Mode = kGoodweatherAuto;
   }
 }
 
-uint8_t IRGoodweatherAc::getMode() {
-  return (remote & kGoodweatherModeMask) >> kGoodweatherBitMode;
+/// Get the operating mode setting of the A/C.
+/// @return The current operating mode setting.
+uint8_t IRGoodweatherAc::getMode(void) const {
+  return _.Mode;
 }
 
+/// Set the Light (LED) Toggle setting of the A/C.
+/// @param[in] toggle true, the setting is on. false, the setting is off.
 void IRGoodweatherAc::setLight(const bool toggle) {
-  this->setCommand(kGoodweatherCmdLight);
-  if (toggle)
-    remote |= kGoodweatherLightMask;
-  else
-    remote &= ~kGoodweatherLightMask;
+  _.Command = kGoodweatherCmdLight;
+  _.Light = toggle;
 }
 
-bool IRGoodweatherAc::getLight() { return remote & kGoodweatherLightMask; }
+/// Get the Light (LED) Toggle setting of the A/C.
+/// @return true, the setting is on. false, the setting is off.
+bool IRGoodweatherAc::getLight(void) const {
+  return _.Light;
+}
 
+/// Set the Sleep Toggle setting of the A/C.
+/// @param[in] toggle true, the setting is on. false, the setting is off.
 void IRGoodweatherAc::setSleep(const bool toggle) {
-  this->setCommand(kGoodweatherCmdSleep);
-  if (toggle)
-    remote |= kGoodweatherSleepMask;
-  else
-    remote &= ~kGoodweatherSleepMask;
+  _.Command = kGoodweatherCmdSleep;
+  _.Sleep = toggle;
 }
 
-bool IRGoodweatherAc::getSleep() { return remote & kGoodweatherSleepMask; }
+/// Get the Sleep Toggle setting of the A/C.
+/// @return true, the setting is on. false, the setting is off.
+bool IRGoodweatherAc::getSleep(void) const {
+  return _.Sleep;
+}
 
+/// Set the Turbo Toggle setting of the A/C.
+/// @param[in] toggle true, the setting is on. false, the setting is off.
 void IRGoodweatherAc::setTurbo(const bool toggle) {
-  this->setCommand(kGoodweatherCmdTurbo);
-  if (toggle)
-    remote |= kGoodweatherTurboMask;
-  else
-    remote &= ~kGoodweatherTurboMask;
+  _.Command = kGoodweatherCmdTurbo;
+  _.Turbo = toggle;
 }
 
-bool IRGoodweatherAc::getTurbo() { return remote & kGoodweatherTurboMask; }
+/// Get the Turbo Toggle setting of the A/C.
+/// @return true, the setting is on. false, the setting is off.
+bool IRGoodweatherAc::getTurbo(void) const {
+  return _.Turbo;
+}
 
+/// Set the Vertical Swing speed of the A/C.
+/// @param[in] speed The speed to set the swing to.
 void IRGoodweatherAc::setSwing(const uint8_t speed) {
+  _.Command = kGoodweatherCmdSwing;
   switch (speed) {
     case kGoodweatherSwingOff:
     case kGoodweatherSwingSlow:
     case kGoodweatherSwingFast:
-      this->setCommand(kGoodweatherCmdSwing);
-      remote &= ~kGoodweatherSwingMask;
-      remote |= ((uint64_t)speed << kGoodweatherBitSwing);
+      _.Swing = speed;
       break;
     default:
-      this->setSwing(kGoodweatherSwingOff);
+      _.Swing = kGoodweatherSwingOff;
   }
 }
 
-uint8_t IRGoodweatherAc::getSwing() {
-  return (remote & kGoodweatherSwingMask) >> kGoodweatherBitSwing;
+/// Get the Vertical Swing speed of the A/C.
+/// @return The native swing speed setting.
+uint8_t IRGoodweatherAc::getSwing(void) const {
+  return _.Swing;
 }
 
+/// Set the remote Command type/button pressed.
+/// @param[in] cmd The command/button that was issued/pressed.
 void IRGoodweatherAc::setCommand(const uint8_t cmd) {
-  if (cmd <= kGoodweatherCmdLight) {
-    remote &= ~kGoodweatherCommandMask;
-    remote |= (cmd << kGoodweatherBitCommand);
-  }
+  if (cmd <= kGoodweatherCmdLight)
+    _.Command = cmd;
 }
 
-uint8_t IRGoodweatherAc::getCommand() {
-  return (remote & kGoodweatherCommandMask) >> kGoodweatherBitCommand;
+/// Get the Command type/button pressed from the current settings
+/// @return The command/button that was issued/pressed.
+uint8_t IRGoodweatherAc::getCommand(void) const {
+  return _.Command;
 }
 
-// Convert a standard A/C mode into its native mode.
+/// Convert a stdAc::opmode_t enum into its native mode.
+/// @param[in] mode The enum to be converted.
+/// @return The native equivalent of the enum.
 uint8_t IRGoodweatherAc::convertMode(const stdAc::opmode_t mode) {
   switch (mode) {
-    case stdAc::opmode_t::kCool:
-      return kGoodweatherCool;
-    case stdAc::opmode_t::kHeat:
-      return kGoodweatherHeat;
-    case stdAc::opmode_t::kDry:
-      return kGoodweatherDry;
-    case stdAc::opmode_t::kFan:
-      return kGoodweatherFan;
-    default:
-      return kGoodweatherAuto;
+    case stdAc::opmode_t::kCool: return kGoodweatherCool;
+    case stdAc::opmode_t::kHeat: return kGoodweatherHeat;
+    case stdAc::opmode_t::kDry:  return kGoodweatherDry;
+    case stdAc::opmode_t::kFan:  return kGoodweatherFan;
+    default:                     return kGoodweatherAuto;
   }
 }
 
-// Convert a standard A/C Fan speed into its native fan speed.
+/// Convert a stdAc::fanspeed_t enum into it's native speed.
+/// @param[in] speed The enum to be converted.
+/// @return The native equivalent of the enum.
 uint8_t IRGoodweatherAc::convertFan(const stdAc::fanspeed_t speed) {
   switch (speed) {
     case stdAc::fanspeed_t::kMin:
-    case stdAc::fanspeed_t::kLow:
-      return kGoodweatherFanLow;
-    case stdAc::fanspeed_t::kMedium:
-      return kGoodweatherFanMed;
+    case stdAc::fanspeed_t::kLow:    return kGoodweatherFanLow;
+    case stdAc::fanspeed_t::kMedium: return kGoodweatherFanMed;
     case stdAc::fanspeed_t::kHigh:
-    case stdAc::fanspeed_t::kMax:
-      return kGoodweatherFanHigh;
-    default:
-      return kGoodweatherFanAuto;
+    case stdAc::fanspeed_t::kMax:    return kGoodweatherFanHigh;
+    default:                         return kGoodweatherFanAuto;
   }
 }
 
-// Convert a standard A/C Vertical Swing into its native version.
+/// Convert a stdAc::swingv_t enum into it's native setting.
+/// @param[in] swingv The enum to be converted.
+/// @return The native equivalent of the enum.
 uint8_t IRGoodweatherAc::convertSwingV(const stdAc::swingv_t swingv) {
   switch (swingv) {
     case stdAc::swingv_t::kHighest:
     case stdAc::swingv_t::kHigh:
-    case stdAc::swingv_t::kMiddle:
-      return kGoodweatherSwingFast;
+    case stdAc::swingv_t::kMiddle: return kGoodweatherSwingFast;
     case stdAc::swingv_t::kLow:
     case stdAc::swingv_t::kLowest:
-    case stdAc::swingv_t::kAuto:
-      return kGoodweatherSwingSlow;
-    default:
-      return kGoodweatherSwingOff;
+    case stdAc::swingv_t::kAuto:   return kGoodweatherSwingSlow;
+    default:                       return kGoodweatherSwingOff;
   }
 }
 
-// Convert a native mode to it's common equivalent.
+/// Convert a native mode into its stdAc equivalent.
+/// @param[in] mode The native setting to be converted.
+/// @return The stdAc equivalent of the native setting.
 stdAc::opmode_t IRGoodweatherAc::toCommonMode(const uint8_t mode) {
   switch (mode) {
     case kGoodweatherCool: return stdAc::opmode_t::kCool;
     case kGoodweatherHeat: return stdAc::opmode_t::kHeat;
-    case kGoodweatherDry: return stdAc::opmode_t::kDry;
-    case kGoodweatherFan: return stdAc::opmode_t::kFan;
-    default: return stdAc::opmode_t::kAuto;
+    case kGoodweatherDry:  return stdAc::opmode_t::kDry;
+    case kGoodweatherFan:  return stdAc::opmode_t::kFan;
+    default:               return stdAc::opmode_t::kAuto;
   }
 }
 
-// Convert a native fan speed to it's common equivalent.
+/// Convert a native fan speed into its stdAc equivalent.
+/// @param[in] speed The native setting to be converted.
+/// @return The stdAc equivalent of the native setting.
 stdAc::fanspeed_t IRGoodweatherAc::toCommonFanSpeed(const uint8_t speed) {
   switch (speed) {
     case kGoodweatherFanHigh: return stdAc::fanspeed_t::kMax;
-    case kGoodweatherFanMed: return stdAc::fanspeed_t::kMedium;
-    case kGoodweatherFanLow: return stdAc::fanspeed_t::kMin;
-    default: return stdAc::fanspeed_t::kAuto;
+    case kGoodweatherFanMed:  return stdAc::fanspeed_t::kMedium;
+    case kGoodweatherFanLow:  return stdAc::fanspeed_t::kMin;
+    default:                  return stdAc::fanspeed_t::kAuto;
   }
 }
 
-// Convert the A/C state to it's common equivalent.
-stdAc::state_t IRGoodweatherAc::toCommon(void) {
+/// Convert the current internal state into its stdAc::state_t equivalent.
+/// @return The stdAc equivalent of the native settings.
+stdAc::state_t IRGoodweatherAc::toCommon(void) const {
   stdAc::state_t result;
   result.protocol = decode_type_t::GOODWEATHER;
-  result.power = this->getPower();
-  result.mode = this->toCommonMode(this->getMode());
+  result.power = _.Power;
+  result.mode = toCommonMode(_.Mode);
   result.celsius = true;
-  result.degrees = this->getTemp();
-  result.fanspeed = this->toCommonFanSpeed(this->getFan());
-  result.swingv = this->getSwing() == kGoodweatherSwingOff ?
-      stdAc::swingv_t::kOff : stdAc::swingv_t::kAuto;
-  result.turbo = this->getTurbo();
-  result.light = this->getLight();
-  result.sleep = this->getSleep() ? 0: -1;
+  result.degrees = getTemp();
+  result.fanspeed = toCommonFanSpeed(_.Fan);
+  result.swingv = (_.Swing == kGoodweatherSwingOff ?
+      stdAc::swingv_t::kOff : stdAc::swingv_t::kAuto);
+  result.turbo = _.Turbo;
+  result.light = _.Light;
+  result.sleep = _.Sleep ? 0: -1;
   // Not supported.
   result.model = -1;
   result.swingh = stdAc::swingh_t::kOff;
@@ -299,139 +334,103 @@ stdAc::state_t IRGoodweatherAc::toCommon(void) {
   return result;
 }
 
-// Convert the internal state into a human readable string.
-String IRGoodweatherAc::toString() {
+/// Convert the current internal state into a human readable string.
+/// @return A human readable string.
+String IRGoodweatherAc::toString(void) const {
   String result = "";
   result.reserve(150);  // Reserve some heap for the string to reduce fragging.
-  result += F("Power: ");
-  result += this->getPower() ? F("On") : F("Off");
-  result += F(", Mode: ");
-  result += uint64ToString(this->getMode());
-  switch (this->getMode()) {
-    case kGoodweatherAuto:
-      result += F(" (AUTO)");
-      break;
-    case kGoodweatherCool:
-      result += F(" (COOL)");
-      break;
-    case kGoodweatherHeat:
-      result += F(" (HEAT)");
-      break;
-    case kGoodweatherDry:
-      result += F(" (DRY)");
-      break;
-    case kGoodweatherFan:
-      result += F(" (FAN)");
-      break;
-    default:
-      result += F(" (UNKNOWN)");
-  }
-  result += F(", Temp: ");
-  result += uint64ToString(this->getTemp());
-  result += F("C, Fan: ");
-  result += uint64ToString(this->getFan());
-  switch (this->getFan()) {
-    case kGoodweatherFanAuto:
-      result += F(" (AUTO)");
-      break;
-    case kGoodweatherFanHigh:
-      result += F(" (HIGH)");
-      break;
-    case kGoodweatherFanMed:
-      result += F(" (MED)");
-      break;
-    case kGoodweatherFanLow:
-      result += F(" (LOW)");
-      break;
-  }
-  result += F(", Turbo: ");
-  result += this->getTurbo() ? F("Toggle") : F("-");
-  result += F(", Light: ");
-  result += this->getLight() ? F("Toggle") : F("-");
-  result += F(", Sleep: ");
-  result += this->getSleep() ? F("Toggle") : F("-");
-  result += F(", Swing: ");
-  result += uint64ToString(this->getSwing());
-  switch (this->getSwing()) {
+  result += addBoolToString(_.Power, kPowerStr, false);
+  result += addModeToString(_.Mode, kGoodweatherAuto, kGoodweatherCool,
+                            kGoodweatherHeat, kGoodweatherDry, kGoodweatherFan);
+  result += addTempToString(getTemp());
+  result += addFanToString(_.Fan, kGoodweatherFanHigh, kGoodweatherFanLow,
+                           kGoodweatherFanAuto, kGoodweatherFanAuto,
+                           kGoodweatherFanMed);
+  result += addLabeledString(_.Turbo ? kToggleStr : "-", kTurboStr);
+  result += addLabeledString(_.Light ? kToggleStr : "-", kLightStr);
+  result += addLabeledString(_.Sleep ? kToggleStr : "-", kSleepStr);
+  result += addIntToString(_.Swing, kSwingStr);
+  result += kSpaceLBraceStr;
+  switch (_.Swing) {
     case kGoodweatherSwingFast:
-      result += F(" (Fast)");
+      result += kFastStr;
       break;
     case kGoodweatherSwingSlow:
-      result += F(" (Slow)");
+      result += kSlowStr;
       break;
     case kGoodweatherSwingOff:
-      result += F(" (Off)");
+      result += kOffStr;
       break;
     default:
-      result += F(" (UNKNOWN)");
+      result += kUnknownStr;
   }
-  result += F(", Command: ");
-  result += uint64ToString(this->getCommand());
-  switch (this->getCommand()) {
+  result += ')';
+  result += addIntToString(_.Command, kCommandStr);
+  result += kSpaceLBraceStr;
+  switch (_.Command) {
     case kGoodweatherCmdPower:
-      result += F(" (Power)");
+      result += kPowerStr;
       break;
     case kGoodweatherCmdMode:
-      result += F(" (Mode)");
+      result += kModeStr;
       break;
     case kGoodweatherCmdUpTemp:
-      result += F(" (Temp Up)");
+      result += kTempUpStr;
       break;
     case kGoodweatherCmdDownTemp:
-      result += F(" (Temp Down)");
+      result += kTempDownStr;
       break;
     case kGoodweatherCmdSwing:
-      result += F(" (Swing)");
+      result += kSwingStr;
       break;
     case kGoodweatherCmdFan:
-      result += F(" (Fan)");
+      result += kFanStr;
       break;
     case kGoodweatherCmdTimer:
-      result += F(" (Timer)");
+      result += kTimerStr;
       break;
     case kGoodweatherCmdAirFlow:
-      result += F(" (Air Flow)");
+      result += kAirFlowStr;
       break;
     case kGoodweatherCmdHold:
-      result += F(" (Hold)");
+      result += kHoldStr;
       break;
     case kGoodweatherCmdSleep:
-      result += F(" (Sleep)");
+      result += kSleepStr;
       break;
     case kGoodweatherCmdTurbo:
-      result += F(" (Turbo)");
+      result += kTurboStr;
       break;
     case kGoodweatherCmdLight:
-      result += F(" (Light)");
+      result += kLightStr;
       break;
     default:
-      result += F(" (UNKNOWN)");
+      result += kUnknownStr;
   }
+  result += ')';
   return result;
 }
 
 #if DECODE_GOODWEATHER
-// Decode the supplied Goodweather message.
-//
-// Args:
-//   results: Ptr to the data to decode and where to store the decode result.
-//   nbits:   The number of data bits to expect. Typically kGoodweatherBits.
-//   strict:  Flag indicating if we should perform strict matching.
-// Returns:
-//   boolean: True if it can decode it, false if it can't.
-//
-// Status: ALPHA / Untested.
-bool IRrecv::decodeGoodweather(decode_results* results,
+/// Decode the supplied Goodweather message.
+/// Status: BETA / Probably works.
+/// @param[in,out] results Ptr to the data to decode & where to store the decode
+///   result.
+/// @param[in] offset The starting index to use when attempting to decode the
+///   raw data. Typically/Defaults to kStartOffset.
+/// @param[in] nbits The number of data bits to expect.
+/// @param[in] strict Flag indicating if we should perform strict matching.
+/// @return A boolean. True if it can decode it, false if it can't.
+bool IRrecv::decodeGoodweather(decode_results* results, uint16_t offset,
                                const uint16_t nbits,
                                const bool strict) {
-  if (results->rawlen < 2 * (2 * nbits) + kHeader + 2 * kFooter - 1)
+  if (results->rawlen < 2 * (2 * nbits) + kHeader + 2 * kFooter - 1 + offset)
     return false;  // Can't possibly be a valid Goodweather message.
   if (strict && nbits != kGoodweatherBits)
     return false;  // Not strictly a Goodweather message.
 
   uint64_t dataSoFar = 0;
   uint16_t dataBitsSoFar = 0;
-  uint16_t offset = kStartOffset;
   match_result_t data_result;
 
   // Header
@@ -449,7 +448,8 @@ bool IRrecv::decodeGoodweather(decode_results* results,
     data_result = matchData(&(results->rawbuf[offset]), 8,
                             kGoodweatherBitMark, kGoodweatherOneSpace,
                             kGoodweatherBitMark, kGoodweatherZeroSpace,
-                            kTolerance, kMarkExcess, false);
+                            _tolerance + kGoodweatherExtraTolerance,
+                            kMarkExcess, false);
     if (data_result.success == false) return false;
     DPRINTLN("DEBUG: Normal byte read okay.");
     offset += data_result.used;
@@ -458,7 +458,8 @@ bool IRrecv::decodeGoodweather(decode_results* results,
     data_result = matchData(&(results->rawbuf[offset]), 8,
                             kGoodweatherBitMark, kGoodweatherOneSpace,
                             kGoodweatherBitMark, kGoodweatherZeroSpace,
-                            kTolerance, kMarkExcess, false);
+                            _tolerance + kGoodweatherExtraTolerance,
+                            kMarkExcess, false);
     if (data_result.success == false) return false;
     DPRINTLN("DEBUG: Inverted byte read okay.");
     offset += data_result.used;
@@ -472,10 +473,12 @@ bool IRrecv::decodeGoodweather(decode_results* results,
   }
 
   // Footer.
-  if (!matchMark(results->rawbuf[offset++], kGoodweatherBitMark)) return false;
+  if (!matchMark(results->rawbuf[offset++], kGoodweatherBitMark,
+                 _tolerance + kGoodweatherExtraTolerance)) return false;
   if (!matchSpace(results->rawbuf[offset++], kGoodweatherHdrSpace))
     return false;
-  if (!matchMark(results->rawbuf[offset++], kGoodweatherBitMark)) return false;
+  if (!matchMark(results->rawbuf[offset++], kGoodweatherBitMark,
+                 _tolerance + kGoodweatherExtraTolerance)) return false;
   if (offset <= results->rawlen &&
       !matchAtLeast(results->rawbuf[offset], kGoodweatherHdrSpace))
     return false;

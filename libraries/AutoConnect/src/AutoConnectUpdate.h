@@ -11,7 +11,7 @@
  *   The dialog pages are all AutoConnectAux, and they select available
  *   sketch binary, display during update processing, and display
  *   update results.
- * 2. Daialog pages handler
+ * 2. Dialog pages handler
  *   In the dialog page, AUTOCONNECT_URI_UPDATE, AUTOCONNECT_URI_UPDATE_ACT,
  *   AUTOCONNECT_URI_UPDATE_RESULT are assigned and there is a page
  *   handler for each.
@@ -65,7 +65,7 @@ typedef enum AC_UPDATESTATUS {
   UPDATE_RESET,             /**< Update process ended, need to reset */
   UPDATE_IDLE,              /**< Update process has not started */
   UPDATE_START,             /**< Update process has been started */
-  UPDATE_PROGRESS,          /**< Update process has been started */
+  UPDATE_PROGRESS,          /**< Update process in progress */
   UPDATE_SUCCESS,           /**< Update successfully completed */
   UPDATE_NOAVAIL,           /**< No available update */
   UPDATE_FAIL               /**< Update fails */
@@ -116,7 +116,7 @@ class AutoConnectUpdateAct : public AutoConnectUpdateVoid, public HTTPUpdateClas
   ~AutoConnectUpdateAct();
   void  attach(AutoConnect& portal) override;  /**< Attach the update class to AutoConnect */
   void  enable(void) override;       /**< Enable the AutoConnectUpdateAct */
-  void  disable(const bool activte = false) override;      /**< Disable the AutoConnectUpdateAct */
+  void  disable(const bool activate = false) override;      /**< Disable the AutoConnectUpdateAct */
   void  handleUpdate(void) override; /**< Behaves the update process */
   bool  isEnabled(void) override { return _auxCatalog ? _auxCatalog->isMenu() : false; } /**< Returns current updater effectiveness */
   AC_UPDATESTATUS_t  status(void) override { return _status; }   /**< reports the current update behavior status */

@@ -31,6 +31,13 @@ Changes to the original library:
 - 2018-06-19: Updated DHT example to distinguish between ESP8266 examples and ESP32 examples    
 - 2018-07-06: Fixed bug in ESP32 example    
 - 2018-07-17: Use correct field separator in keywords.txt    
+- 2019-03-07: Added computeAbsoluteHumidity which returns the absolute humidity in g/m³. Reference: [How to convert relative humidity to absolute humidity](https://carnotcycle.wordpress.com/2012/08/04/how-to-convert-relative-humidity-to-absolute-humidity/) kudos to [Wurstnase](https://github.com/Wurstnase)    
+- 2019-03-22: Fixed auto detection problem    
+- 2019-07-31: Make getPin() public, Updated ESP8266 example        
+- 2019-10-01: Using noInterrupts() & interrupts() instead of cli and sei
+- 2019-10-05: Reduce CPU usage and add decimal part for DHT11 (thanks to Swiftyhu)
+- 2019-10-06: Back to working version by removing the last commit
+
 Features
 --------
   - Support for DHT11 and DHT22, AM2302, RHT03
@@ -48,12 +55,11 @@ Functions
 -----
 _**`void setup(uint8_t pin, DHT_MODEL_t model=AUTO_DETECT);`**_    
 - Call to initialize the interface, define the GPIO pin to which the sensor is connected and define the sensor type. Valid sensor types are:     
-    - AUTO_DETECT     Try to detect which sensor is connected    
+    - AUTO_DETECT     Try to detect which sensor is connected (default if 2nd parameter is not used)    
     - DHT11    
     - DHT22    
     - AM2302          Packaged DHT22    
     - RHT03           Equivalent to DHT22    
-- WARNING: Autodetect does not work reliable. use e.g setup(pin, DHTesp::DHT11) or e.g. setup(pin, DHTesp::RHT03) instead
 _**`void resetTimer();`**_    
 - Reset last time the sensor was read    
 
@@ -118,6 +124,9 @@ _**`float computeHeatIndex(float temperature, float percentHumidity, bool isFahr
 _**`float computeDewPoint(float temperature, float percentHumidity, bool isFahrenheit=false);`**_    
 - Compute the dew point. Default temperature is in Centrigrade.    
 
+_**`float computeAbsoluteHumidity(float temperature, float percentHumidity, bool isFahrenheit=false);`**_    
+- Compute the absolute humidity in g/m³. Default temperature is in Centrigrade.    
+
 _**`float getComfortRatio(ComfortState& destComfStatus, float temperature, float percentHumidity, bool isFahrenheit=false);`**_    
 - Compute the comfort ratio. Default temperature is in Centrigrade. Return values:    
 0 -> OK    
@@ -140,6 +149,9 @@ _**`byte computePerception(float temperature, float percentHumidity, bool isFahr
 5 -> Quite uncomfortable    
 6 -> Very uncomfortable    
 7 -> Severe uncomfortable    
+
+_**`uint8_t getPin(void);`**_    
+- Returns the assigned GPIO for this instance. Usefull when connecting multiple sensors         
 
 Usage
 -----

@@ -1,6 +1,7 @@
 # PageBuilder - HTML assembly aid for ESP8266/ESP32 WebServer
 [![Build Status](https://travis-ci.org/Hieromon/PageBuilder.svg?branch=master)](https://travis-ci.org/Hieromon/PageBuilder)
-[![arduino-library-badge](https://www.ardu-badge.com/badge/PageBuilder.svg)](https://www.ardu-badge.com/PageBuilder)
+[![arduino-library-badge](https://www.ardu-badge.com/badge/PageBuilder.svg?)](https://www.ardu-badge.com/PageBuilder)
+[![License](https://img.shields.io/github/license/Hieromon/PageBuilder)](https://github.com/Hieromon/PageBuilder/blob/master/LICENSE)
 
 *An arduino library to create html string in the sketch for ESP8266/ESP32 WebServer.* 
 
@@ -215,14 +216,18 @@ PageElement::PageElement(const char* mold, TokenVT source);
   String func2(PageArgument& args);
   PageElement elem(html, {{"TOKEN1", func1}, {"TOKEN2", func2}});
   ```
-  `mold` can also use external files placed on SPIFFS. Since HTML consists of more strings, the program area may be smaller in sketches using many pages.  
-  External files can have HTML source specified by `mold`. That file would be allocated on the SPIFFS file system. This allows you to reduce the sketch size and assign more capacity to the program.  
+  `mold` can also use external files placed on [LittleFS](https://arduino-esp8266.readthedocs.io/en/latest/filesystem.html#spiffs-and-littlefs) or [SPIFFS](https://arduino-esp8266.readthedocs.io/en/latest/filesystem.html#spiffs-and-littlefs). Since HTML consists of more strings, the program area may be smaller in sketches using many pages.  
+  External files can have HTML source specified by `mold`. That file would be allocated on the LittleFS or SPIFFS file system. This allows you to reduce the sketch size and assign more capacity to the program.  
   You can specify the HTML source file name by `mold` parameter in the following format.  
   ```
   file:FILE_NAME
   ```
-  `FILE_NAME` is the name of the HTML source file containing `/`. If prefix **file:** is specified in `mold` parameter, the PageElement class reads its file from SPIFFS as HTML source. A sample sketch using this way is an example as [FSPage.ino](examples/FSPage/README.md).  
+  `FILE_NAME` is the name of the HTML source file containing `/`. If prefix **file:** is specified in `mold` parameter, the PageElement class reads its file from LittleFS or SPIFFS as HTML source. A sample sketch using this way is an example as [FSPage.ino](examples/FSPage/README.md).  
   For details for how to write HTML source file to SPIFFS of ESP8266, please refer to [Uploading files to file system](https://arduino-esp8266.readthedocs.io/en/latest/filesystem.html#uploading-files-to-file-system).
+
+
+  **Note:**
+  For ESP8266, the default file system has been changed to LittleFS since PageBuilder v1.4.2. It is a measure in compliance with the ESP8266 core 2.7.0 or later treating SPIFFS as deprecated. 
 
 ## Methods
 
@@ -298,6 +303,14 @@ Set Transfer-Encoding with chunked, or not.
 Set buffer size for reserved content building buffer.
 - `size` : Reservation size. If you do not specify a reserved buffer size by this function, the buffer for the build function will not be reserved. As a result, memory insufficient is likely to occur due to fragmentation.
 
+#### `void PageBuilder::authentication(const char* username, const char* password, HTTPAuthMethod mode, const char* realm, const String& authFail)`
+Enable authentication when the page is accessed. It can take either DIGEST or BASIC as the authentication method, and HTTP authentication will work with the `username` and `password` specified along with the URL access.
+- `username` : Specify the user name to embed in the sketch for authentication. Specifying a **NULL** value for the `username` can de-authorize the page in dynamically.
+- `password` : Specify the password to embed in the sketch for authentication.
+- `mode` : Specify the authentication method as either **BASIC** or **DIGEST**. An enumeration value is `BASIC_AUTH` for **BASIC**, `DIGEST_AUTH` for **DIGEST**. This parameter can be omitted, and the default value is `BASIC_AUTH`. It depends on **HTTPAuthMethod** enumeration.
+- `realm` : Specify an authentication [realm](https://tools.ietf.org/html/rfc2617#section-1.2). This parameter can be omitted, and the default value is `"Login Required"`, which depends on the `ESP8266WebServer::requestAuthentication` API default value.
+- `authFail` : The Content of the HTML response in case of Unauthorized Access.
+
 ### PageElement methods
 
 #### `const char* PageElement::mold()`  
@@ -346,11 +359,42 @@ The function would be called twice at one http request. The cause is the interna
 ### An example using this way.  
 [DynamicPage.ino](examples/DynamicPage/DynamicPage.ino)
 
+## Significant changes
+
+Since PageBuilder 1.4.2, the default file system has changed SPIFFS to LittleFS. It is a measure to comply with the deprecation of SPIFFS by the core. However, SPIFFS is still available and defines the [**PB_USE_SPIFFS**](https://github.com/Hieromon/PageBuilder/blob/master/src/PageBuilder.h#L39) macro in [PageBuilder.h](https://github.com/Hieromon/PageBuilder/blob/master/src/PageBuilder.h) file to enable it as follows:
+
+```cpp
+#define PB_USE_SPIFFS
+```
+
+**PB_USE_SPIFFS** macro is valid only when the platform is ESP8266 and will be ignored with ESP32 arduino core. (at least until LittleFS is supported by the ESP32 arduino core)
 
 ## Change log
 
+#### [1.4.2] 2020-05-28
+- Supports LittleFS on ESP8266.
+
+#### [1.4.1] 2020-05-13
+- Avoid empty-body warning with PB_DEBUG not specified.
+
+#### [1.4.0] 2020-04-10
+- Adds BASIC / DIGEST authentication.
+
+#### [1.3.7] 2020-01-14
+- Fixed WebLED example sketch crashes.
+
+#### [1.3.6] 2019-12-19
+- Fixed a token handler being called twice when building content with more than 1270 bytes. (issue #14)
+
+#### [1.3.5] 2019-12-04
+- Fixed losing uri set with setUri. (issue #13)
+
+#### [1.3.4] 2019-06-27
+- Fixed PB_DBG_DUMB missing. PR #10
+
 #### [1.3.3] 2019-04-13
 - Fixed loss of built content when HTML is large.
+- Fixed a warning for uninitialized used.
 
 #### [1.3.2] 2019-02-07
 - Supports AutoConnect v0.9.7.

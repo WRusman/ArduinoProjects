@@ -1,6 +1,7 @@
 // Copyright 2019 David Conran
 
 #include "ir_MitsubishiHeavy.h"
+#include "IRac.h"
 #include "IRrecv.h"
 #include "IRrecv_test.h"
 #include "IRremoteESP8266.h"
@@ -294,7 +295,7 @@ TEST(TestMitsubishiHeavy152AcClass, HumanReadable) {
 
   EXPECT_EQ(
       "Power: Off, Mode: 0 (Auto), Temp: 17C, Fan: 0 (Auto), "
-      "Swing (V): 0 (Auto), Swing (H): 0 (Auto), Silent: Off, Turbo: Off, "
+      "Swing(V): 0 (Auto), Swing(H): 0 (Auto), Silent: Off, Turbo: Off, "
       "Econo: Off, Night: Off, Filter: Off, 3D: Off, Clean: Off",
       ac.toString());
   ac.on();
@@ -311,7 +312,7 @@ TEST(TestMitsubishiHeavy152AcClass, HumanReadable) {
   ac.setSwingHorizontal(kMitsubishiHeavy152SwingHAuto);
   EXPECT_EQ(
       "Power: On, Mode: 1 (Cool), Temp: 17C, Fan: 4 (Max), "
-      "Swing (V): 0 (Auto), Swing (H): 0 (Auto), Silent: On, Turbo: Off, "
+      "Swing(V): 0 (Auto), Swing(H): 0 (Auto), Silent: On, Turbo: Off, "
       "Econo: Off, Night: On, Filter: On, 3D: On, Clean: Off",
       ac.toString());
 
@@ -328,7 +329,7 @@ TEST(TestMitsubishiHeavy152AcClass, HumanReadable) {
 
   EXPECT_EQ(
       "Power: On, Mode: 4 (Heat), Temp: 31C, Fan: 8 (Turbo), "
-      "Swing (V): 5 (Lowest), Swing (H): 1 (Max Left), Silent: Off, Turbo: On, "
+      "Swing(V): 5 (Lowest), Swing(H): 1 (Max Left), Silent: Off, Turbo: On, "
       "Econo: Off, Night: Off, Filter: On, 3D: Off, Clean: Off",
       ac.toString());
 
@@ -339,7 +340,7 @@ TEST(TestMitsubishiHeavy152AcClass, HumanReadable) {
 
   EXPECT_EQ(
       "Power: On, Mode: 0 (Auto), Temp: 31C, Fan: 6 (Econo), "
-      "Swing (V): 6 (Off), Swing (H): 1 (Max Left), Silent: Off, "
+      "Swing(V): 6 (Off), Swing(H): 1 (Max Left), Silent: Off, "
       "Turbo: Off, Econo: On, Night: Off, Filter: On, 3D: Off, Clean: On",
       ac.toString());
 
@@ -350,7 +351,7 @@ TEST(TestMitsubishiHeavy152AcClass, HumanReadable) {
   ac.setSwingHorizontal(kMitsubishiHeavy152SwingHLeftRight);
   EXPECT_EQ(
       "Power: On, Mode: 2 (Dry), Temp: 25C, Fan: 0 (Auto), "
-      "Swing (V): 6 (Off), Swing (H): 7 (Left Right), Silent: Off, "
+      "Swing(V): 6 (Off), Swing(H): 7 (Left Right), Silent: Off, "
       "Turbo: Off, Econo: Off, Night: Off, Filter: Off, 3D: Off, Clean: Off",
       ac.toString());
 }
@@ -360,7 +361,7 @@ TEST(TestMitsubishiHeavy152AcClass, ReconstructKnownExample) {
 
   EXPECT_EQ(
       "Power: Off, Mode: 0 (Auto), Temp: 17C, Fan: 0 (Auto), "
-      "Swing (V): 0 (Auto), Swing (H): 0 (Auto), Silent: Off, Turbo: Off, "
+      "Swing(V): 0 (Auto), Swing(H): 0 (Auto), Silent: Off, Turbo: Off, "
       "Econo: Off, Night: Off, Filter: Off, 3D: Off, Clean: Off",
       ac.toString());
   ac.on();
@@ -378,7 +379,7 @@ TEST(TestMitsubishiHeavy152AcClass, ReconstructKnownExample) {
   ac.setSwingHorizontal(kMitsubishiHeavy152SwingHAuto);
   EXPECT_EQ(
       "Power: On, Mode: 4 (Heat), Temp: 24C, Fan: 4 (Max), "
-      "Swing (V): 0 (Auto), Swing (H): 0 (Auto), Silent: Off, Turbo: Off, "
+      "Swing(V): 0 (Auto), Swing(H): 0 (Auto), Silent: Off, Turbo: Off, "
       "Econo: Off, Night: Off, Filter: Off, 3D: Off, Clean: Off",
       ac.toString());
 
@@ -572,10 +573,10 @@ TEST(TestMitsubishiHeavy88AcClass, VerticalSwing) {
   ac.setSwingVertical(kMitsubishiHeavy88SwingVOff);
   EXPECT_EQ(kMitsubishiHeavy88SwingVOff, ac.getSwingVertical());
 
-  ac.setSwingVertical(kMitsubishiHeavy88SwingVHighest + 1);
+  ac.setSwingVertical(kMitsubishiHeavy88SwingVLowest + 1);
   EXPECT_EQ(kMitsubishiHeavy88SwingVOff, ac.getSwingVertical());
 
-  ac.setSwingVertical(kMitsubishiHeavy88SwingVOff + 1);
+  ac.setSwingVertical(kMitsubishiHeavy88SwingVHigh + 1);
   EXPECT_EQ(kMitsubishiHeavy88SwingVOff, ac.getSwingVertical());
 
   // Out of bounds.
@@ -592,19 +593,19 @@ TEST(TestMitsubishiHeavy88AcClass, HorizontalSwing) {
   ac.setSwingHorizontal(kMitsubishiHeavy88SwingHLeftMax);
   EXPECT_EQ(kMitsubishiHeavy88SwingHLeftMax, ac.getSwingHorizontal());
 
-  ac.setSwingHorizontal(kMitsubishiHeavy88SwingHLeftMax + 1);
+  ac.setSwingHorizontal(kMitsubishiHeavy88SwingHRightMax + 1);
   EXPECT_EQ(kMitsubishiHeavy88SwingHOff, ac.getSwingHorizontal());
 
   ac.setSwingHorizontal(kMitsubishiHeavy88SwingHRightMax);
   EXPECT_EQ(kMitsubishiHeavy88SwingHRightMax, ac.getSwingHorizontal());
 
-  ac.setSwingHorizontal(kMitsubishiHeavy88SwingHRightMax - 1);
+  ac.setSwingHorizontal(kMitsubishiHeavy88SwingHRightMax + 1);
   EXPECT_EQ(kMitsubishiHeavy88SwingHOff, ac.getSwingHorizontal());
 
   ac.setSwingHorizontal(kMitsubishiHeavy88SwingHOff);
   EXPECT_EQ(kMitsubishiHeavy88SwingHOff, ac.getSwingHorizontal());
 
-  ac.setSwingHorizontal(kMitsubishiHeavy88SwingHOff + 1);
+  ac.setSwingHorizontal(kMitsubishiHeavy88SwingH3D + 1);
   EXPECT_EQ(kMitsubishiHeavy88SwingHOff, ac.getSwingHorizontal());
 
   // Out of bounds.
@@ -636,7 +637,7 @@ TEST(TestMitsubishiHeavy88AcClass, HumanReadable) {
 
   EXPECT_EQ(
       "Power: Off, Mode: 0 (Auto), Temp: 17C, Fan: 0 (Auto), "
-      "Swing (V): 0 (Off), Swing (H): 0 (Off), "
+      "Swing(V): 0 (Off), Swing(H): 0 (Off), "
       "Turbo: Off, Econo: Off, 3D: Off, Clean: Off",
       ac.toString());
   ac.on();
@@ -649,7 +650,7 @@ TEST(TestMitsubishiHeavy88AcClass, HumanReadable) {
   ac.setSwingVertical(kMitsubishiHeavy88SwingVAuto);
   EXPECT_EQ(
       "Power: On, Mode: 1 (Cool), Temp: 17C, Fan: 4 (High), "
-      "Swing (V): 16 (Auto), Swing (H): 200 (3D), "
+      "Swing(V): 4 (Auto), Swing(H): 14 (3D), "
       "Turbo: Off, Econo: Off, 3D: On, Clean: Off",
       ac.toString());
 
@@ -663,7 +664,7 @@ TEST(TestMitsubishiHeavy88AcClass, HumanReadable) {
 
   EXPECT_EQ(
       "Power: On, Mode: 4 (Heat), Temp: 31C, Fan: 6 (Turbo), "
-      "Swing (V): 26 (Lowest), Swing (H): 4 (Max Left), Turbo: On, Econo: Off, "
+      "Swing(V): 7 (Lowest), Swing(H): 1 (Max Left), Turbo: On, Econo: Off, "
       "3D: Off, Clean: Off",
       ac.toString());
 
@@ -674,7 +675,7 @@ TEST(TestMitsubishiHeavy88AcClass, HumanReadable) {
 
   EXPECT_EQ(
       "Power: On, Mode: 0 (Auto), Temp: 31C, Fan: 7 (Econo), "
-      "Swing (V): 0 (Off), Swing (H): 4 (Max Left), Turbo: Off, Econo: On, "
+      "Swing(V): 0 (Off), Swing(H): 1 (Max Left), Turbo: Off, Econo: On, "
       "3D: Off, Clean: On",
       ac.toString());
 
@@ -685,7 +686,7 @@ TEST(TestMitsubishiHeavy88AcClass, HumanReadable) {
   ac.setSwingHorizontal(kMitsubishiHeavy88SwingHLeftRight);
   EXPECT_EQ(
       "Power: On, Mode: 2 (Dry), Temp: 25C, Fan: 0 (Auto), "
-      "Swing (V): 0 (Off), Swing (H): 72 (Left Right), Turbo: Off, Econo: Off, "
+      "Swing(V): 0 (Off), Swing(H): 6 (Left Right), Turbo: Off, Econo: Off, "
       "3D: Off, Clean: Off",
       ac.toString());
 }
@@ -704,7 +705,7 @@ TEST(TestDecodeMitsubishiHeavy, ZmsRealExample) {
       0xF8, 0x04, 0xFB, 0x00, 0xFF, 0x00, 0xFF, 0x00,
       0xFF, 0x80, 0x7F};
 
-  // Ref: https://github.com/markszabo/IRremoteESP8266/issues/660#issuecomment-480571466
+  // Ref: https://github.com/crankyoldgit/IRremoteESP8266/issues/660#issuecomment-480571466
   uint16_t rawData[307] = {
       3136, 1638, 364, 428, 366, 1224, 362, 432, 364, 430, 364, 1226, 362, 432,
       364, 1224, 366, 428, 366, 430, 366, 1224, 362, 1228, 362, 1228, 362, 432,
@@ -740,9 +741,11 @@ TEST(TestDecodeMitsubishiHeavy, ZmsRealExample) {
   ac.setRaw(irsend.capture.state);
   EXPECT_EQ(
       "Power: On, Mode: 4 (Heat), Temp: 24C, Fan: 4 (Max), "
-      "Swing (V): 0 (Auto), Swing (H): 0 (Auto), Silent: Off, Turbo: Off, "
+      "Swing(V): 0 (Auto), Swing(H): 0 (Auto), Silent: Off, Turbo: Off, "
       "Econo: Off, Night: Off, Filter: Off, 3D: Off, Clean: Off",
-      ac.toString());
+      IRAcUtils::resultAcToString(&irsend.capture));
+  stdAc::state_t r, p;
+  ASSERT_TRUE(IRAcUtils::decodeToState(&irsend.capture, &r, &p));
 }
 
 // Decode a Synthetic MitsubishiHeavy 152Bit message.
@@ -767,7 +770,7 @@ TEST(TestDecodeMitsubishiHeavy, ZmsSyntheticExample) {
   ac.setRaw(irsend.capture.state);
   EXPECT_EQ(
       "Power: On, Mode: 4 (Heat), Temp: 24C, Fan: 4 (Max), "
-      "Swing (V): 0 (Auto), Swing (H): 0 (Auto), Silent: Off, Turbo: Off, "
+      "Swing(V): 0 (Auto), Swing(H): 0 (Auto), Silent: Off, Turbo: Off, "
       "Econo: Off, Night: Off, Filter: Off, 3D: Off, Clean: Off",
       ac.toString());
 }
@@ -784,7 +787,7 @@ TEST(TestDecodeMitsubishiHeavy, ZmsRealExample2) {
       0xF8, 0x04, 0xFB, 0x00, 0xFF, 0x00, 0xFF, 0x00,
       0xFF, 0x80, 0x7F};
 
-  // Ref: https://github.com/markszabo/IRremoteESP8266/issues/660#issuecomment-480571466
+  // Ref: https://github.com/crankyoldgit/IRremoteESP8266/issues/660#issuecomment-480571466
   uint16_t rawData[307] = {
       3196, 1580, 398, 390, 404, 1190, 400, 390, 402, 390, 402, 1192, 402, 388,
       402, 1192, 400, 390, 402, 392, 402, 1192, 400, 1188, 400, 1188, 400, 390,
@@ -820,7 +823,7 @@ TEST(TestDecodeMitsubishiHeavy, ZmsRealExample2) {
   ac.setRaw(irsend.capture.state);
   EXPECT_EQ(
       "Power: Off, Mode: 4 (Heat), Temp: 24C, Fan: 4 (Max), "
-      "Swing (V): 0 (Auto), Swing (H): 0 (Auto), Silent: Off, Turbo: Off, "
+      "Swing(V): 0 (Auto), Swing(H): 0 (Auto), Silent: Off, Turbo: Off, "
       "Econo: Off, Night: Off, Filter: Off, 3D: Off, Clean: Off",
       ac.toString());
 }
@@ -845,9 +848,11 @@ TEST(TestDecodeMitsubishiHeavy, ZjsSyntheticExample) {
   ac.setRaw(irsend.capture.state);
   EXPECT_EQ(
       "Power: On, Mode: 2 (Dry), Temp: 25C, Fan: 0 (Auto), "
-      "Swing (V): 0 (Off), Swing (H): 72 (Left Right), Turbo: Off, Econo: Off, "
+      "Swing(V): 0 (Off), Swing(H): 6 (Left Right), Turbo: Off, Econo: Off, "
       "3D: Off, Clean: Off",
-      ac.toString());
+      IRAcUtils::resultAcToString(&irsend.capture));
+  stdAc::state_t r, p;
+  ASSERT_TRUE(IRAcUtils::decodeToState(&irsend.capture, &r, &p));
 }
 
 TEST(TestMitsubishiHeavy152AcClass, toCommon) {

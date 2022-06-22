@@ -1,9 +1,9 @@
 /**
- *  Declaration of PaguBuilder class and accompanying PageElement, PageArgument class.
+ *  Declaration of PageBuilder class and accompanying PageElement, PageArgument class.
  *  @file PageBuilder.h
  *  @author hieromon@gmail.com
- *  @version  1.3.3
- *  @date 2019-03-11
+ *  @version  1.4.2
+ *  @date 2020-05-25
  *  @copyright  MIT license.
  */
 
@@ -31,17 +31,23 @@ using WebServerClass = WebServer;
 #endif
 
 // Uncomment the following PB_DEBUG to enable debug output.
-#define PB_DEBUG
+// #define PB_DEBUG
+
+// SPIFFS has deprecated on EP8266 core. This flag indicates that
+// the migration to LittleFS has not completed.
+// Uncomment the following PB_USE_SPIFFS to enable SPIFFS.
+// #define PB_USE_SPIFFS
 
 // Debug output destination can be defined externally with PB_DEBUG_PORT
 #ifndef PB_DEBUG_PORT
 #define PB_DEBUG_PORT Serial
 #endif // !PB_DEBUG_PORT
 #ifdef PB_DEBUG
-#define PB_DBG_DUMB(...) do {PB_DEBUG_PORT.printf( __VA_ARGS__ );} while (0)
-#define PB_DBG(...) do {PB_DEBUG_PORT.print("[PB] "); PB_DEBUG_PORT.printf( __VA_ARGS__ );} while (0)
+#define PB_DBG_DUMB(fmt, ...) do {PB_DEBUG_PORT.printf(PSTR(fmt), ## __VA_ARGS__ );} while (0)
+#define PB_DBG(fmt, ...) do {PB_DEBUG_PORT.printf(PSTR("[PB] " fmt), ## __VA_ARGS__ );} while (0)
 #else
-#define PB_DBG(...)
+#define PB_DBG_DUMB(...) do {} while (0)
+#define PB_DBG(...) do {} while (0)
 #endif // !PB_DEBUG
 
 #define PAGEELEMENT_FILE  "file:"
@@ -145,9 +151,8 @@ typedef std::function<bool(HTTPMethod, String)> PrepareFuncT;
  */
 class PageBuilder : public RequestHandler {
  public:
-  PageBuilder() : _uri(nullptr), _method(HTTP_ANY), _upload(nullptr), _noCache(true), _cancel(false), _sendEnc(PB_Auto), _rSize(0), _server(nullptr), _canHandle(nullptr) {}
+  PageBuilder() : _method(HTTP_ANY), _upload(nullptr), _noCache(true), _cancel(false), _sendEnc(PB_Auto), _rSize(0), _server(nullptr), _canHandle(nullptr) {}
   explicit PageBuilder(PageElementVT element, HTTPMethod method = HTTP_ANY, bool noCache = true, bool cancel = false, TransferEncoding_t chunked = PB_Auto) :
-    _uri(nullptr),
     _element(element),
     _method(method),
     _upload(nullptr),
@@ -158,7 +163,7 @@ class PageBuilder : public RequestHandler {
     _server(nullptr),
     _canHandle(nullptr) {}
   PageBuilder(const char* uri, PageElementVT element, HTTPMethod method = HTTP_ANY, bool noCache = true, bool cancel = false, TransferEncoding_t chunked = PB_Auto) :
-    _uri(uri),
+    _uri(String(uri)),
     _element(element),
     _method(method),
     _upload(nullptr),
@@ -169,7 +174,7 @@ class PageBuilder : public RequestHandler {
     _server(nullptr),
     _canHandle(nullptr) {}
 
-  virtual ~PageBuilder() { _uri = nullptr; _server = nullptr; clearElement(); }
+  virtual ~PageBuilder() { _server = nullptr; clearElement(); _username.reset(); _password.reset(); _realm.reset(); }
 
   /** The type of user-owned function for uploading. */
   typedef std::function<void(const String&, const HTTPUpload&)> UploadFuncT;
@@ -179,8 +184,8 @@ class PageBuilder : public RequestHandler {
   bool handle(WebServerClass& server, HTTPMethod requestMethod, String requestUri) override;
   virtual void upload(WebServerClass& server, String requestUri, HTTPUpload& upload) override;
 
-  void setUri(const char* uri) { _uri = uri; }
-  const char* uri() { return _uri; }
+  void setUri(const char* uri) { _uri = String(uri); }
+  const char* uri() { return _uri.c_str(); }
   void insert(WebServerClass& server) { server.addHandler(this); }
   void addElement(PageElement& element) { _element.push_back(element); }
   void clearElement();
@@ -192,23 +197,30 @@ class PageBuilder : public RequestHandler {
   void exitCanHandle(PrepareFuncT prepareFunc) { _canHandle = prepareFunc; }
   virtual void onUpload(UploadFuncT uploadFunc) { _upload = uploadFunc; }
   void cancel() { _cancel = true; }
-  void chunked(const TransferEncoding_t devide) { _sendEnc = devide; }
+  void chunked(const TransferEncoding_t devid) { _sendEnc = devid; }
   void reserve(size_t size) { _rSize = size; }
+  void authentication(const char* username, const char* password, HTTPAuthMethod mode = BASIC_AUTH, const char* realm = NULL, const String& authFail = String(""));
 
  protected:
-  const char*   _uri;       /**< uri of this page */
+  String        _uri;       /**< uri of this page */
   PageElementVT _element;   /**< PageElement container */
   HTTPMethod    _method;    /**< Method of http request to which this page applies. */
   UploadFuncT   _upload;    /**< 'upload' user owned function */
 
  private:
   bool    _sink(int code, WebServerClass& server);  /**< send Content */
+  char*   _digestKey(const char* key);  /**< save authentication parameter */
   bool    _noCache;               /**< A flag for must-revalidate cache control response */
   bool    _cancel;                /**< Automatic send cancellation */
   TransferEncoding_t  _sendEnc;   /**< Use chunked sending */
+  HTTPAuthMethod  _auth;          /**< Authentication method */
   size_t  _rSize;                 /**< Reserved buffer size for content building */
   WebServerClass* _server;
-  PrepareFuncT  _canHandle;       /**< 'canHanlde' user owned function */
+  PrepareFuncT  _canHandle;       /**< 'canHandle' user owned function */
+  std::unique_ptr<char[]> _username;  /**< A user name for authentication */
+  std::unique_ptr<char[]> _password;  /**< A password for authentication */
+  std::unique_ptr<char[]> _realm;     /**< realm for DIGEST */
+  String  _fails;                /**< A message for authentication failed */
 
   static const String _emptyString;
 };

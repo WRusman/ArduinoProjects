@@ -2,7 +2,7 @@
 // ESP8266 work for the NeoPixelBus library: github.com/Makuna/NeoPixelBus
 // Needs to be a separate .c file to enforce ICACHE_RAM_ATTR execution.
 
-#if defined(ESP8266) || defined(ESP32)
+#if defined(ESP8266)
 
 #include <Arduino.h>
 #ifdef ESP8266
@@ -32,9 +32,13 @@ void espShow(
 #define CYCLES_400      (F_CPU /  400000) // 2.5us per bit
 
   uint8_t *p, *end, pix, mask;
-  uint32_t t, time0, time1, period, c, startTime, pinMask;
+  uint32_t t, time0, time1, period, c, startTime;
 
+#ifdef ESP8266
+  uint32_t pinMask;
   pinMask   = _BV(pin);
+#endif
+
   p         =  pixels;
   end       =  p + numBytes;
   pix       = *p++;

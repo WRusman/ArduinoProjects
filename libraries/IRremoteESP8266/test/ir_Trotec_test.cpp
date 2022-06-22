@@ -1,5 +1,6 @@
 // Copyright 2019 David Conran
 #include "ir_Trotec.h"
+#include "IRac.h"
 #include "IRrecv.h"
 #include "IRrecv_test.h"
 #include "IRsend.h"
@@ -48,7 +49,7 @@ TEST(TestTrotecESPClass, MessageConstructon) {
       0x12, 0x34, 0x29, 0x82, 0x00, 0x00, 0x00, 0x00, 0xAB};
   EXPECT_STATE_EQ(expected, ac.getRaw(), kTrotecBits);
   EXPECT_EQ(
-      "Power: On, Mode: 1 (COOL), Temp: 20C, Fan Speed: 2 (Med), Sleep: On",
+      "Power: On, Mode: 1 (Cool), Temp: 20C, Fan: 2 (Medium), Sleep: On",
       ac.toString());
 }
 
@@ -97,11 +98,11 @@ TEST(TestDecodeTrotec, SyntheticDecode) {
   EXPECT_EQ(decode_type_t::TROTEC, irsend.capture.decode_type);
   EXPECT_EQ(kTrotecBits, irsend.capture.bits);
   EXPECT_STATE_EQ(expectedState, irsend.capture.state, irsend.capture.bits);
-  IRTrotecESP ac(0);
-  ac.setRaw(irsend.capture.state);
   EXPECT_EQ(
-      "Power: On, Mode: 1 (COOL), Temp: 20C, Fan Speed: 2 (Med), Sleep: On",
-      ac.toString());
+      "Power: On, Mode: 1 (Cool), Temp: 20C, Fan: 2 (Medium), Sleep: On",
+      IRAcUtils::resultAcToString(&irsend.capture));
+  stdAc::state_t r, p;
+  ASSERT_TRUE(IRAcUtils::decodeToState(&irsend.capture, &r, &p));
 }
 
 
@@ -176,4 +177,5 @@ TEST(TestUtils, Housekeeping) {
   ASSERT_EQ("TROTEC", typeToString(decode_type_t::TROTEC));
   ASSERT_EQ(decode_type_t::TROTEC, strToDecodeType("TROTEC"));
   ASSERT_TRUE(hasACState(decode_type_t::TROTEC));
+  ASSERT_TRUE(IRac::isProtocolSupported(decode_type_t::TROTEC));
 }

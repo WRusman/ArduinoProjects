@@ -11,7 +11,7 @@
  * TL;DR: The IR LED needs to be driven by a transistor for a good result.
  *
  * Suggested circuit:
- *     https://github.com/markszabo/IRremoteESP8266/wiki#ir-sending
+ *     https://github.com/crankyoldgit/IRremoteESP8266/wiki#ir-sending
  *
  * Common mistakes & tips:
  *   * Don't just connect the IR LED directly to the pin, it won't
@@ -65,7 +65,10 @@ IRsend irsend(kIrLed);  // Set the GPIO to be used to sending the message.
 void handleRoot() {
   server.send(200, "text/html",
               "<html>" \
-                "<head><title>" HOSTNAME " Demo</title></head>" \
+                "<head><title>" HOSTNAME " Demo </title>" \
+                "<meta http-equiv=\"Content-Type\" " \
+                    "content=\"text/html;charset=utf-8\">" \
+                "</head>" \
                 "<body>" \
                   "<h1>Hello from " HOSTNAME ", you can send NEC encoded IR" \
                       "signals from here!</h1>" \

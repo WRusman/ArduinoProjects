@@ -1,6 +1,6 @@
 ## Saved credentials in the flash
 
-AutoConnect stores the established WiFi connection in the flash memory of the ESP8266/ESP32 module and equips the class to access the credentials from the sketch. You can read, write or erase the credentials using this class individually. It's [**AutoConnectCredential**](#autoconnectcredential) class which provides the access method to the saved credentials in the flash.[^1]
+AutoConnect stores the credentials of the established WiFi connection in the flash memory of the ESP8266/ESP32 module and equips the class to access the credentials from the sketch. You can read, write, or erase the credentials using this class individually. It's the [**AutoConnectCredential**](#autoconnectcredential), which provides the way of access to the credentials stored in flash.[^1]
 
 [^1]:An example using AutoConnectCredential is provided as [an example](https://github.com/Hieromon/AutoConnect/blob/master/examples/Credential/Credential.ino) of a library sketch to delete saved credentials.
 
@@ -33,7 +33,7 @@ The location where AutoConnect saves credentials depends on the module type and 
 
 However, sketches do not need to know where to store credentials using the commonly accessible [AutoConnectCredential](#AutoConnectCredential) API.
 
-If you are using an Arduino core for ESP32 1.0.2 earlier and need to use credentials in EEPROM for backward compatibility, turns off the **AUTOCONNECT_USE_PREFERENCES**[^3] macro definition in `AutoConnectCredentials.h` file. AutoConnect behaves assuming that credentials are stored in EEPROM if `AUTOCONNECT_USE_PREFERENCES` is not defined.
+If you are using an Arduino core for ESP32 1.0.2 earlier and need to use credentials in EEPROM for backward compatibility, turns off the **`AUTOCONNECT_USE_PREFERENCES`**[^3] macro definition in `AutoConnectCredentials.h` file. AutoConnect behaves assuming that credentials are stored in EEPROM if `AUTOCONNECT_USE_PREFERENCES` is not defined.
 
 [^2]:The namespace for Preferences used by AutoConnect is **AC_CREDT**.
 [^3]:Available only for AutoConnect v1.0.0 and later.
@@ -57,8 +57,9 @@ AutoConnectCredential default constructor. The default offset value is 0. In ESP
 ```cpp
 AutoConnectCredential(uint16_t offset);
 ```
+
 <dl class="apidl">
-    <dt>**Parameter**</dt>
+    <dt><strong>Parameter</strong></dt>
     <dd><span class="apidef">offset</span><span class="apidesc">Species offset from the top of the EEPROM for the credential area together. The offset value is from 0 to the flash sector size. This parameter is ignored for AutoConnect v1.0.0 or later with arduino-esp32 core 1.0.3 or later.</span></dd>
 </dl>
 
@@ -70,11 +71,9 @@ AutoConnectCredential(uint16_t offset);
 uint8_t entries(void)
 ```
 
-Returns number of entries as contained credentials.
-<dl class="apidl">
+Returns number of entries as contained credentials.<dl class="apidl">
     <dt>**Return value**</dt>
-    <dd>Number of entries as contained credentials.</dd>
-</dl>
+    <dd>Number of entries as contained credentials.</dd></dl>
 
 #### <i class="fa fa-caret-right"></i> load
 
@@ -82,14 +81,12 @@ Returns number of entries as contained credentials.
 int8_t load(const char* ssid, station_config_t* config)
 ```
 
-Load a credential entry and store to **config**.
-<dl class="apidl">
+Load a credential entry and store to **config**.<dl class="apidl">
     <dt>**Parameters**</dt>
     <dd><span class="apidef">ssid</span><span class="apidesc">SSID to be loaded.</span></dd>
     <dd><span class="apidef">config</span><span class="apidesc">station_config_t</span></dd>
     <dt>**Return value**</dt>
-    <dd>Save the specified SSID's credential entry to station_config_t pointed to by the parameter as **config**. -1 is returned if the SSID is not saved. </dd>
-</dl>
+    <dd>Save the specified SSID's credential entry to `station_config_t` pointed to by the parameter as **config**. -1 is returned if the SSID is not saved.</dd></dl>
 
 #### <i class="fa fa-caret-right"></i> load
 
@@ -97,14 +94,12 @@ Load a credential entry and store to **config**.
 bool load(int8_t entry, station_config_t* config)
 ```
 
-Load a credential entry and store to **config**.
-<dl class="apidl">
+Load a credential entry and store to **config**.<dl class="apidl">
     <dt>**Parameters**</dt>
     <dd><span class="apidef">entry</span><span class="apidesc">Specifies the index number based 0 to be loaded.</span></dd>
     <dd><span class="apidef">config</span><span class="apidesc">station_config_t</span></dd>
     <dt>**Return value**</dt>
-    <dd>Save the specified credential entry to station_config_t pointed to by the parameter as **config**. -1 is returned if specified number is not saved. </dd>
-</dl>
+    <dd>Save the specified credential entry to `station_config_t` pointed to by the parameter as **config**. -1 is returned if specified number is not saved.</dd></dl>
 
 #### <i class="fa fa-caret-right"></i> save
 
@@ -112,14 +107,12 @@ Load a credential entry and store to **config**.
 bool save(const station_config_t* config)
 ```
 
-Save a credential entry.
-<dl class="apidl">
+Save a credential entry.<dl class="apidl">
     <dt>**Parameter**</dt>
     <dd><span class="apidef">config</span><span class="apidesc">station_config_t to be saved.</span></dd>
     <dt>**Return value**</dt>
     <dd><span class="apidef">true</span><span class="apidesc">Successfully saved.</span></dd>
-    <dd><span class="apidef">false</span><span class="apidesc">Failed to save.</span></dd>
-</dl>
+    <dd><span class="apidef">false</span><span class="apidesc">Failed to save.</span></dd></dl>
 
 #### <i class="fa fa-caret-right"></i> del
 
@@ -127,18 +120,17 @@ Save a credential entry.
 bool del(const char* ssid)
 ```
 
-Delete a credential the specified SSID.
-<dl class="apidl">
+Delete a credential the specified SSID.<dl class="apidl">
     <dt>**Parameter**</dt>
     <dd><span class="apidef">ssid</span><span class="apidesc">SSID to be deleted.</span></dd>
     <dt>**Return value**</dt>
     <dd><span class="apidef">true</span><span class="apidesc">Successfully deleted.</span></dd>
-    <dd><span class="apidef">false</span><span class="apidesc">Failed to delete.</span></dd>
-</dl>
+    <dd><span class="apidef">false</span><span class="apidesc">Failed to delete.</span></dd></dl>
 
 !!! example "Clear saved credentials"
     There is no particular API for batch clearing of all credential data stored by AutoConnect. It is necessary to prepare a sketch function that combines several AutoConnectCredential APIs  to erase all saved credentials.
     The following function is an implementation example, and you can use it to achieve batch clearing.
+    
     ```cpp
     void deleteAllCredentials(void) {
       AutoConnectCredential credential;
@@ -154,9 +146,9 @@ Delete a credential the specified SSID.
 
 ## The data structures
 
-### <i class="fa fa-code"></i>  station_config_t
+### <i class="fas fa-database"></i>  station_config_t
 
-The saved credential structure is defined as stato_config_t in the AcutoConnectCredential header file.
+The saved credential structure is defined as `station_config_t` in the AcutoConnectCredential header file.
 
 ```cpp
 typedef struct {
@@ -177,10 +169,10 @@ typedef struct {
 } station_config_t;
 ```
 
-!!! note "The byte size of station_config_t in program memory and stored credentials is different"
-    There is a gap byte for boundary alignment between the `dhcp` member and the static IP members of the above station_config_t. Its gap byte will be removed with saved credentials on the flash.
+!!! note "The byte size of `station_config_t` in program memory and stored credentials is different"
+    There is a gap byte for boundary alignment between the `dhcp` member and the static IP members of the above `station_config_t`. Its gap byte will be removed with saved credentials on the flash.
 
-### <i class="fa fa-code"></i>  The credential entry
+### <i class="fas fa-database"></i>  The credential entry
 
 A data structure of the credential saving area in EEPROM as the below. [^4]
 
@@ -207,6 +199,6 @@ There may be 0xff as an invalid data in the credential saving area. The 0xff are
 
 !!! note "AutoConnectCredential has changed"
     It was lost AutoConnectCredential backward compatibility. Credentials saved by AutoConnect v1.0.3 (or earlier) will not work properly with AutoConnect v1.1.0. You need to erase the flash of the ESP module using the esptool before the sketch uploading.
-    ```
-    esptool -c esp8266 (or esp32) - p [COM_PORT] erase_flash
+    ```powershell
+    esptool -c esp8266 (or esp32) -p [COM_PORT] erase_flash
     ```

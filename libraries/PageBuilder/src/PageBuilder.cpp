@@ -3,16 +3,25 @@
  *  PageElement.
  *  @file   PageBuilder.cpp
  *  @author hieromon@gmail.com
- *  @version    1.3.3
- *  @date   2019-03-11
+ *  @version    1.4.2
+ *  @date   2020-05-25
  *  @copyright  MIT license.
  */
 
 #include "PageBuilder.h"
 #include "PageStream.h"
+#if defined(ARDUINO_ARCH_ESP8266)
+#ifdef PB_USE_SPIFFS
 #include <FS.h>
-#ifdef ARDUINO_ARCH_ESP32
+namespace PageBuilderFS { FS& flash = SPIFFS; };
+#else
+#include <LittleFS.h>
+namespace PageBuilderFS { FS& flash = LittleFS; };
+#endif
+#elif defined(ARDUINO_ARCH_ESP32)
+#include <FS.h>
 #include <SPIFFS.h>
+namespace PageBuilderFS { fs::SPIFFSFS& flash = SPIFFS; };
 #endif
 
 // A maximum length of the content block to switch to chunked transfer.
@@ -91,6 +100,36 @@ void PageBuilder::upload(WebServerClass& server, String requestUri, HTTPUpload& 
 }
 
 /**
+ *  Save the parameters for authentication.
+ *  @param  username  A user name for authentication.
+ *  @param  password  A password
+ *  @param  mode      Authentication method
+ *  @param  realm     A realm
+ *  @param  authFail  Message string for authentication failed
+ */
+void PageBuilder::authentication(const char* username, const char* password, HTTPAuthMethod mode, const char* realm, const String& authFail) {
+    _auth = mode;
+    _username.reset(_digestKey(username));
+    _password.reset(_digestKey(password));
+    _realm.reset(_digestKey(realm));
+    _fails = String(authFail.c_str());
+}
+
+/**
+ *  Hold an authentication parameter
+ *  @param  key  Authentication parameter string
+ *  @return A pointer of a held string
+ */
+char* PageBuilder::_digestKey(const char* key) {
+    if (key && strlen(key)) {
+        char* cb = new char[strlen(key) + sizeof('\0')];
+        strcpy(cb, key);
+        return cb;
+    }
+    return nullptr;
+}
+
+/**
  *  Generates HTML content and sends it to the client in response.<br>
  *  This function overrides the handle method of the RequestHandler class.
  *  @param  server          A reference of ESP8266WebServer.
@@ -115,7 +154,7 @@ bool PageBuilder::_sink(int code, WebServerClass& server) { //, HTTPMethod reque
     // send http content to client
     if (!_cancel) {
         String  content;                // Content is available only in a NOT _cancel block
-        size_t  contLen;
+        size_t  contLen = 0;
         bool    _chunked = (_sendEnc == PB_Chunk);
 
         if (_sendEnc == PB_ByteStream || _sendEnc == PB_Auto) {
@@ -138,7 +177,7 @@ bool PageBuilder::_sink(int code, WebServerClass& server) { //, HTTPMethod reque
             PB_DBG("Transfer-Encoding:chunked\n");
             server.setContentLength(CONTENT_LENGTH_UNKNOWN);
             server.send(code, F("text/html"), _emptyString);
-            if (PB_Chunk) {
+            if (_sendEnc == PB_Chunk) {
                 // Chunk block is a PageElement unit.
                 for (uint8_t i = 0; i < _element.size(); i++) {
                     PageElement& element = _element[i].get();
@@ -185,6 +224,15 @@ bool PageBuilder::handle(WebServerClass& server, HTTPMethod requestMethod, Strin
     // Screening the available request
     if (!canHandle(requestMethod, requestUri))
         return false;
+
+    if (_username) {
+        // Should be able to authenticate with the specified username.
+        if (!server.authenticate(_username.get(), _password.get())) {
+            PB_DBG("failed to authenticate\n");
+            server.requestAuthentication(_auth, _realm.get(), _fails);
+            return true;
+        }
+    }
 
     // Throw with 200 response
     return _sink(200, server);
@@ -331,7 +379,7 @@ String PageElement::build(const char* mold, TokenVT tokenSource, PageArgument& a
     // When the mold parameter has the prefix "file:", read the mold source
     // from the file.
     if (templ.startsWith(PAGEELEMENT_FILE)) {
-        File mf = SPIFFS.open(templ.substring(strlen(PAGEELEMENT_FILE)), "r");
+        File mf = PageBuilderFS::flash.open(templ.substring(strlen(PAGEELEMENT_FILE)), "r");
         if (mf) {
             templ = mf.readString();
             mf.close();
@@ -436,7 +484,7 @@ int PageArgument::args() {
 }
 
 /**
- *  Returns whether the http request to PageBuiler that invoked this PageElement
+ *  Returns whether the http request to PageBuilder that invoked this PageElement
  *  contained parameters.
  *  @retval true    This http request contains parameter(s).
  *  @retval false   This http request has no parameter.

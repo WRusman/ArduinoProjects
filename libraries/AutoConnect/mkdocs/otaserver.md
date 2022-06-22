@@ -1,6 +1,6 @@
 ## Updates with the update server
 
-Since the v1.0.0 release, AutoConnect provides new feature for updating sketch firmware of ESP8266 or ESP32 modules via OTA using the [AutoConnectUpdate](apiupdate.md#autoconnectupdate) class that is an implementation of the sketch binary update by the HTTP server mentioned in the [OTA update](https://arduino-esp8266.readthedocs.io/en/latest/ota_updates/readme.html#http-server) of the ESP8266 Arduino Core documentation, which inherits from the ESP8266HTTPUpdate class (as HTTPUpdate class in the case of ESP32). It acts as a client agent for a series of update operations.
+Since the v1.0.0 release, AutoConnect provides new feature for updating sketch firmware of ESP8266 or ESP32 modules via OTA using the [AutoConnectUpdate](apiupdate.md#autoconnectupdate) class that is an implementation of the Sketch binary update by the HTTP server mentioned in the [OTA update](https://arduino-esp8266.readthedocs.io/en/latest/ota_updates/readme.html#http-server) of the ESP8266 Arduino Core documentation, which inherits from the ESP8266HTTPUpdate class (as HTTPUpdate class in the case of ESP32). It acts as a client agent for a series of update operations.
 
 This method allows you to remotely update the ESP module's firmware beyond the network segments from the update server, as long as you can ensure proper routing and forwarding.
 
@@ -70,16 +70,17 @@ In the OTA platform, you can place the update server operated by the script in a
 For Python2: *AUTOCONNECT\_LIBRARY\_PATH*/src/updateserver/python2  
 For Python3: *AUTOCONNECT\_LIBRARY\_PATH*/src/updateserver/python3
 
-```bash
+```powershell
 updateserver.py [-h] [--port PORT] [--bind IP_ADDRESS] [--catalog CATALOG] [--log LOG_LEVEL]
 ```
+
 <dl class="apidl">
   <dt></dt>
-  <dd><span class="apidef">**--help | -h**</span><span class="apidesc">Show help message and exit.</span>
-  <dd><span class="apidef">**--port | -p**</span><span class="apidesc">Specifies **PORT** number (Default: 8000)</span>
-  <dd><span class="apidef">**--bind | -b**</span><span class="apidesc">Specifies the IP address to which the update server binds. Usually, it is the host address of the update server. When multiple NICs configured, specify one of the IP addresses. (Default: HOST IP or 127.0.0.0)</span>
-  <dd><span class="apidef">**--catalog | -d**</span><span class="apidesc">Specifies the directory path on the update server that contains the binary sketch files. (Default: The current directory)</span>
-  <dd><span class="apidef">**--log | -l**</span><span class="apidesc">Specifies the level of logging output. It accepts the [Logging Levels](https://docs.python.org/3/library/logging.html?highlight=logging#logging-levels) specified in the Python logging module.</span>
+  <dd><span class="apidef"><strong>--help | -h</strong></span><span class="apidesc">Show help message and exit.</span>
+  <dd><span class="apidef"><strong>--port | -p</strong></span><span class="apidesc">Specifies <strong>PORT</strong> number (Default: 8000)</span>
+  <dd><span class="apidef"><strong>--bind | -b</strong></span><span class="apidesc">Specifies the IP address to which the update server binds. Usually, it is the host address of the update server. When multiple NICs configured, specify one of the IP addresses. (Default: HOST IP or 127.0.0.0)</span>
+  <dd><span class="apidef"><strong>--catalog | -d</strong></span><span class="apidesc">Specifies the directory path on the update server that contains the binary sketch files. (Default: The current directory)</span>
+  <dd><span class="apidef"><strong>--log | -l</strong></span><span class="apidesc">Specifies the level of logging output. It accepts the <a href="https://docs.python.org/3/library/logging.html?highlight=logging#logging-levels">Logging Levels</a> specified in the Python logging module.</span>
 </dl>
 
 !!! example "updateserver.py usage"
@@ -91,7 +92,7 @@ updateserver.py [-h] [--port PORT] [--bind IP_ADDRESS] [--catalog CATALOG] [--lo
 
     3. Start updateserver.py  
        For example, to start the update server on the host with IP address 172.16.1.10 using 8080 port[^4], execute the following command:
-      ```bash
+      ```powershell
       python updateserver.py --port 8080 --bind 172.16.1.10 --catalog bin --log debug
       ```  
       In this example assumes that the binary sketch files are deployed under the path `bin` from the current directory.
@@ -118,15 +119,16 @@ Above requirements will be implemented on along the HTTP protocol. The AutoConne
 
 #### 1. HTTP URL query for the catalog list of the updatable
 
-```
+```powershell
 [address]/_catalog?op=list&path=[path]
 ```
+
 <dl class="apidl">
   <dt></dt>
-  <dd><span class="apidef">**address**</span><span class="apidesc">URL of the update server</span>
-  <dd><span class="apidef">**/_catalog**</span><span class="apidesc">Request path, it is fixed.</span>
-  <dd><span class="apidef">**op**</span><span class="apidesc">Operation command for the update server. Currently, only '**list**' occurs.</span>
-  <dd><span class="apidef">**path**</span><span class="apidesc">Path containing the updatable binary files on the update server.</span>
+  <dd><span class="apidef"><strong>address</strong></span><span class="apidesc">URL of the update server</span>
+  <dd><span class="apidef"><strong>/_catalog</strong></span><span class="apidesc">Request path, it is fixed.</span>
+  <dd><span class="apidef"><strong>op</strong></span><span class="apidesc">Operation command for the update server. Currently, only '<strong>list</strong>' occurs.</span>
+  <dd><span class="apidef"><strong>path</strong></span><span class="apidesc">Path containing the updatable binary files on the update server.</span>
 </dl>
 
 #### 2. The catalog list content
@@ -142,13 +144,14 @@ The response (that is, the catalog list) to the above query from the server is t
   "size" : FILE_SIZE
 }
 ```
+
 <dl class="apidl">
   <dt></dt>
-  <dd><span class="apidef">**name**</span><span class="apidesc">Binary sketch file name for update (String)</span>
-  <dd><span class="apidef">**type**</span><span class="apidesc">One of '**bin**', '**directory**' or '**file**'. AutoConnect Update recognizes only file types of '**bin**' as update targets. (String)</span>
-  <dd><span class="apidef">**date**</span><span class="apidesc">File update date. AutoConnect v1.0.0 treats the file update date as an annotation and is not equip the version control feature yet. (String)</span>
-  <dd><span class="apidef">**time**</span><span class="apidesc">File update time. AutoConnect v1.0.0 treats the file update date as an annotation and is not equip the version control feature yet. (String)</span>
-  <dd><span class="apidef">**size**</span><span class="apidesc">File byte count (Numeric)</span>
+  <dd><span class="apidef"><strong>name</strong></span><span class="apidesc">Binary sketch file name for update (String)</span>
+  <dd><span class="apidef"><strong>type</strong></span><span class="apidesc">One of '<strong>bin</strong>', '<strong>directory</strong>' or '<strong>file</strong>'. AutoConnect Update recognizes only file types of '<strong>bin</strong>' as update targets. (String)</span>
+  <dd><span class="apidef"><strong>date</strong></span><span class="apidesc">File update date. AutoConnect v1.0.0 treats the file update date as an annotation and is not equip the version control feature yet. (String)</span>
+  <dd><span class="apidef"><strong>time</strong></span><span class="apidesc">File update time. AutoConnect v1.0.0 treats the file update date as an annotation and is not equip the version control feature yet. (String)</span>
+  <dd><span class="apidef"><strong>size</strong></span><span class="apidesc">File byte count (Numeric)</span>
 </dl>
 
 The above JSON object is one entry. The actual catalog list is an array of this entry since it  assumes that an update server will provide multiple update binary files in production. The update server should respond with the MIME type specified as `application/json` for the catalog list.[^7]
@@ -159,7 +162,7 @@ The above JSON object is one entry. The actual catalog list is an array of this 
 
 The AutoConnectUpdate class issues a HTTP GET request with the specified host address and URI. The update server responds by sending back a binary sketch file with the following header:
 
-```
+```powershell
 Content-Type: application/octet-stream
 Content-Disposition: attachment; filename="BINARY_SKETCH_FILE_NAME"
 Content-Length: LENGTH_OF_CONTENT

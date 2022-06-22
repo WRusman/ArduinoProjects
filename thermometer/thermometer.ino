@@ -9,7 +9,7 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 Ticker ticker; 
 WiFiManager wifiManager;
-OLED display(4, 5);
+OLED display();
 
 const char* mqtt_server = "192.168.1.136";
 const char* ntpServerName = "nl.pool.ntp.org";

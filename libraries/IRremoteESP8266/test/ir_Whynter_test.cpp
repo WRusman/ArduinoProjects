@@ -151,7 +151,7 @@ TEST(TestDecodeWhynter, NormalDecodeWithStrict) {
   irsend.reset();
   irsend.sendWhynter(0x87654321);
   irsend.makeDecodeResult();
-  ASSERT_TRUE(irrecv.decodeWhynter(&irsend.capture, kWhynterBits, true));
+  ASSERT_TRUE(irrecv.decode(&irsend.capture));
   EXPECT_EQ(WHYNTER, irsend.capture.decode_type);
   EXPECT_EQ(kWhynterBits, irsend.capture.bits);
   EXPECT_EQ(0x87654321, irsend.capture.value);
@@ -170,20 +170,20 @@ TEST(TestDecodeWhynter, NormalDecodeWithRepeatAndStrict) {
   irsend.reset();
   irsend.sendWhynter(0x87654321, kWhynterBits, 2);
   irsend.makeDecodeResult();
-  ASSERT_TRUE(irrecv.decodeWhynter(&irsend.capture, kWhynterBits, true));
+  ASSERT_TRUE(irrecv.decode(&irsend.capture));
   EXPECT_EQ(WHYNTER, irsend.capture.decode_type);
   EXPECT_EQ(kWhynterBits, irsend.capture.bits);
   EXPECT_EQ(0x87654321, irsend.capture.value);
   EXPECT_FALSE(irsend.capture.repeat);
 
   irsend.makeDecodeResult(2 * kWhynterBits + 6);
-  ASSERT_TRUE(irrecv.decodeWhynter(&irsend.capture, kWhynterBits, true));
+  ASSERT_TRUE(irrecv.decode(&irsend.capture));
   EXPECT_EQ(WHYNTER, irsend.capture.decode_type);
   EXPECT_EQ(kWhynterBits, irsend.capture.bits);
   EXPECT_EQ(0x87654321, irsend.capture.value);
 
   irsend.makeDecodeResult(2 * (2 * kWhynterBits + 6));
-  ASSERT_TRUE(irrecv.decodeWhynter(&irsend.capture, kWhynterBits, true));
+  ASSERT_TRUE(irrecv.decode(&irsend.capture));
   EXPECT_EQ(WHYNTER, irsend.capture.decode_type);
   EXPECT_EQ(kWhynterBits, irsend.capture.bits);
   EXPECT_EQ(0x87654321, irsend.capture.value);
@@ -199,10 +199,11 @@ TEST(TestDecodeWhynter, DecodeWithNonStrictSizes) {
   irsend.sendWhynter(0x12, 8);  // Illegal sized Whynter 8-bit message.
   irsend.makeDecodeResult();
   // Should fail with strict on.
-  ASSERT_FALSE(irrecv.decodeWhynter(&irsend.capture, kWhynterBits, true));
-  ASSERT_FALSE(irrecv.decodeWhynter(&irsend.capture, 8, true));
+  ASSERT_FALSE(irrecv.decodeWhynter(&irsend.capture, kStartOffset, kWhynterBits,
+                                    true));
+  ASSERT_FALSE(irrecv.decodeWhynter(&irsend.capture, kStartOffset, 8, true));
   // Should pass if strict off.
-  ASSERT_TRUE(irrecv.decodeWhynter(&irsend.capture, 8, false));
+  ASSERT_TRUE(irrecv.decodeWhynter(&irsend.capture, kStartOffset, 8, false));
   EXPECT_EQ(WHYNTER, irsend.capture.decode_type);
   EXPECT_EQ(8, irsend.capture.bits);
   EXPECT_EQ(0x12, irsend.capture.value);
@@ -213,13 +214,14 @@ TEST(TestDecodeWhynter, DecodeWithNonStrictSizes) {
   irsend.sendWhynter(0x1234567890, 40);  // Illegal size Whynter 40-bit message.
   irsend.makeDecodeResult();
   // Shouldn't pass with strict when we ask for less bits than we got.
-  ASSERT_FALSE(irrecv.decodeWhynter(&irsend.capture, kWhynterBits, true));
+  ASSERT_FALSE(irrecv.decodeWhynter(&irsend.capture, kStartOffset, kWhynterBits,
+                                    true));
 
   irsend.makeDecodeResult();
   // Should fail with strict when we ask for the wrong bit size.
-  ASSERT_FALSE(irrecv.decodeWhynter(&irsend.capture, 40, true));
+  ASSERT_FALSE(irrecv.decodeWhynter(&irsend.capture, kStartOffset, 40, true));
   // Should pass if strict off.
-  ASSERT_TRUE(irrecv.decodeWhynter(&irsend.capture, 40, false));
+  ASSERT_TRUE(irrecv.decodeWhynter(&irsend.capture, kStartOffset, 40, false));
   EXPECT_EQ(WHYNTER, irsend.capture.decode_type);
   EXPECT_EQ(40, irsend.capture.bits);
   EXPECT_EQ(0x1234567890, irsend.capture.value);
@@ -238,7 +240,7 @@ TEST(TestDecodeWhynter, Decode64BitMessages) {
   irsend.sendWhynter(0xFFFFFFFFFFFFFFFF, 64);
   irsend.makeDecodeResult();
   // Should work with a 'normal' match (not strict)
-  ASSERT_TRUE(irrecv.decodeWhynter(&irsend.capture, 64, false));
+  ASSERT_TRUE(irrecv.decodeWhynter(&irsend.capture, kStartOffset, 64, false));
   EXPECT_EQ(WHYNTER, irsend.capture.decode_type);
   EXPECT_EQ(64, irsend.capture.bits);
   EXPECT_EQ(0xFFFFFFFFFFFFFFFF, irsend.capture.value);
@@ -262,5 +264,6 @@ TEST(TestDecodeWhynter, FailToDecodeNonWhynterExample) {
   irsend.makeDecodeResult();
 
   ASSERT_FALSE(irrecv.decodeWhynter(&irsend.capture));
-  ASSERT_FALSE(irrecv.decodeWhynter(&irsend.capture, kWhynterBits, false));
+  ASSERT_FALSE(irrecv.decodeWhynter(&irsend.capture, kStartOffset, kWhynterBits,
+                                    false));
 }

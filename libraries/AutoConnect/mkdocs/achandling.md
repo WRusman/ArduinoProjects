@@ -4,7 +4,7 @@ AutoConnectAux is the container for a custom Web page, AutoConnectElement is the
 
 AutoConnectElements declared in sketch must be programmed to add to AutoConnectAux one after another. Elements are automatically included in AutoConnectAux by AutoConnect if you load it from the JSON document. In either method, it is common to use the function of AutoConnectAux to access an element with a sketch.
 
-## Handing AutoConnectElements with the sketches
+## Handing AutoConnectElements with the Sketches
 
 The AutoConnectAux class has several functions to manipulate AutoConnectElements. The functions can add, delete, retrieve elements, and get and set values.
 
@@ -15,15 +15,17 @@ To add AutoConnectElment(s) to an AutoConnectAux object, use the add function.
 ```cpp
 void AutoConnectAux::add(AutoConnectElement& addon)
 ```
+
 ```cpp
 void AutoConnectAux::add(AutoConnectElementVT addons)
 ```
 
-The add function adds the specified AutoConnectElement to AutoConnectAux. The AutoConnectElementVT type is the [*std::vector*](https://en.cppreference.com/w/cpp/container/vector) of the [*reference wrapper*](https://en.cppreference.com/w/cpp/utility/functional/reference_wrapper) to AutoConnectElements, and you can add these elements in bulk by using the [*list initialization*](https://en.cppreference.com/w/cpp/language/list_initialization) with the sketch.
+The add function adds the specified AutoConnectElement to AutoConnectAux. The AutoConnectElementVT type is the [*std::vector*](https://en.cppreference.com/w/cpp/container/vector) of the [*reference wrapper*](https://en.cppreference.com/w/cpp/utility/functional/reference_wrapper) to AutoConnectElements, and you can add these elements in bulk by using the [*list initialization*](https://en.cppreference.com/w/cpp/language/list_initialization) with the Sketch.
 
 ```cpp
 typedef std::vector<std::reference_wrapper<AutoConnectElement>> AutoConnectElementVT;
 ```
+
 AutoConnectElements contained in AutoConnectAux object are uniquely identified by name. When adding an AutoConnectElement, if an element with the same name already exists in the AutoConnectAux, checking the type, and if it is the same, the value will be replaced. If another type of AutoConnectElement exists with the same name, that add operation will be invalid.[^1] In the following example, AutoConnectButton `button` addition will invalid because `hello` with the same name already exists as AutoConnectText.
 
 [^1]: The valid scope of the name is within an AutoConnectAux.
@@ -63,7 +65,7 @@ Similarly this, the uniqueness of the name is also necessary within the JSON doc
 
 ### <i class="fa fa-edit"></i> Get AutoConnectElement from the AutoConnectAux
 
-To retrieve an element from AutoConnectAux, use the getElement or getElements function. Normally, the getElement is needed when accessing the value of AutoConnectElement in the sketch.
+To retrieve an element from AutoConnectAux, use the getElement or getElements function. Normally, the getElement is needed when accessing the value of AutoConnectElement in the Sketch.
 
 ```cpp
 AutoConnectElement* AutoConnectAux::getElement(const String& name)
@@ -104,7 +106,7 @@ AutoConnectText* text = reinterpret_cast<AutoConnectText*>(aux.getElement("TEXT_
 AutoConnectText& text = aux.getElement<AutoConnectText>("TEXT_ELEMENT_NAME");
 ```
 
-The AutoConnectElement type behaves as a variant of other element types. Therefore use cast or template to convert to actual type as above. In the sketch, you access the real type of AutoConnectElement after casting it and storing into the variable.
+The AutoConnectElement type behaves as a variant of other element types. Therefore use cast or template to convert to actual type as above. In the Sketch, you access the real type of AutoConnectElement after casting it and storing into the variable.
 
 ```cpp
 const String auxJson = String("{\"title\":\"Page 1 title\",\"uri\":\"/page1\",\"menu\":true,\"element\":[{\"name\":\"caption\",\"type\":\"ACText\",\"value\":\"hello, world\"}]}");
@@ -115,7 +117,7 @@ AutoConnectText& text = aux->getElement<AutoConnectText>("caption");  // Cast to
 Serial.println(text.value);
 ```
 
-You can also use the [operator **`[]`** of AutoConnectAux](apiaux.md#operator) as another way to get the desired element. An operator **`[]`** is a shortcut for [getElement](apiaux.md#getelement) function with the reference casting and makes simplify the sketch code and treats like an array with the elements placed on a custom Web page. Its argument is the name of the element to be acquired similarly to getElement function. In the sketch, by combining the [**AutoConnectElement::as<T\>**](apielements.md#ast62) function with the operator `[]`, you can access the  AutoConnectElements reference according to its actual type. For example, the following sketch code returns the same as a reference of AutoConnectText element as the `caption`.
+You can also use the [operator **`[]`** of AutoConnectAux](apiaux.md#operator) as another way to get the desired element. An operator **`[]`** is a shortcut for [getElement](apiaux.md#getelement) function with the reference casting and makes simplify the Sketch code and treats like an array with the elements placed on a custom Web page. Its argument is the name of the element to be acquired similarly to getElement function. In the Sketch, by combining the [**AutoConnectElement::as<T\>**](apielements.md#ast62) function with the operator `[]`, you can access the  AutoConnectElements reference according to its actual type. For example, the following sketch code returns the same as a reference of AutoConnectText element as the `caption`.
 
 ```cpp hl_lines="4 5"
 AutoConnect portal;
@@ -145,7 +147,7 @@ To get all the AutoConnectElements in an AutoConnectAux object use the [**getEle
 AutoConnectElementVT& AutoConnectAux::getElements(void)
 ```
 
-### <i class="fa fa-edit"></i> Enable AutoConnectElements during the sketch execution
+### <i class="fa fa-edit"></i> Enable AutoConnectElements during the Sketch execution
 
 AutoConnectElemets have an enable attribute to activate its own HTML generation. Sketches can change the HTMLization of their elements dynamically by setting or resetting the enable value. An element whose the enable attribute is true will generate itself HTML and place on the custom Web page.  And conversely, it will not generate the HTML when the value is false.
 
@@ -201,7 +203,7 @@ void loop() {
 ```
 
 !!! hint "Desirable to set or reset the enable attribute in the page handler"
-    The enable attribute can be set at any time during the sketch execution. The page handler with the [AC_EXIT_AHEAD](apiaux.md#on) option is sure to handle it.
+    The enable attribute can be set at any time during the Sketch execution. The page handler with the [AC_EXIT_AHEAD](apiaux.md#on) option is sure to handle it.
 
 ## Loading &amp; saving AutoConnectElements with JSON
 
@@ -543,7 +545,7 @@ String append(AutoConnectAux& aux, PageArgument& args) {
 ### <i class="fa fa-wrench"></i> How you can reach the values
 
 AutoConnectSubmit uses the POST method to send HTTP requests. A value of AutoConnectInput sent to the ESP8266 or ESP32 with POST is stored in the request body of the HTTP request:
-```
+```powershell
 POST /feels HTTP/1.1
 Host: ESP8266_IP_ADDRESS
 name1=value1&name2=value2&name3=value3
@@ -666,7 +668,7 @@ void loop() {
 
 ESP8266WebServer class and the WebServer class assume that the implementation of the ReqestHandler class contained in the WebServer library will handle the URL requests. Usually, it is sketch code registered by ESP8266WebServer::on function.
 
-When a page transition from a custom Web page created by AutoConnectAux to a handler registered with ESP2866WebServer::on function, a little trick is needed to retrieve the values of AutoConnectElements. (i.e. the URI of the ESP8266WebServer::on handler is specified in the [uri](acelements.md#uri) attribute of [AutoConnectSubmit](acelements.md#autoconnectsubmit)) AutoConnect cannot intervene in the procedure in which the ESP8266WebServer class calls the on-page handler coded with the sketch. Therefore, it is necessary to retrieve preliminary the values of AutoConnectElements using the [AutoConnectAux::fetchElement](apiaux.md#fetchelement) function for value processing with the on-page handler.
+When a page transition from a custom Web page created by AutoConnectAux to a handler registered with ESP2866WebServer::on function, a little trick is needed to retrieve the values of AutoConnectElements. (i.e. the URI of the ESP8266WebServer::on handler is specified in the [uri](acelements.md#uri) attribute of [AutoConnectSubmit](acelements.md#autoconnectsubmit)) AutoConnect cannot intervene in the procedure in which the ESP8266WebServer class calls the on-page handler coded with the Sketch. Therefore, it is necessary to retrieve preliminary the values of AutoConnectElements using the [AutoConnectAux::fetchElement](apiaux.md#fetchelement) function for value processing with the on-page handler.
 
 The following sketch is an example of extracting values inputted on a custom web page with an on-page handler and then processing it.
 
@@ -717,13 +719,13 @@ void loop() {
 }
 ```
 
-### <i class="fa fa-wpforms"></i> Overwrite the AutoConnectElements
+### <i class="fa fa-edit"></i> Overwrite the AutoConnectElements
 
 Sketches can update the attributes of AutoConnectElements with two approaches. A one is to assign directly to the attributes of a member variable of its element. The other is to overwrite them with loading the element by [AutoConnectAux::loadElement](apiaux.md#loadelement). 
 
 The elements for attributes described in the JSON document for AutoConnectElements overwrites the member variables of the target AutoConnectElements. However, AutoConnectAux::loadElement keeps the member variables unchanged if there is no element in the JSON document. This overwriting behavior is the same for the [AutoConnect::load](api.md#load) function.
 
-For example, the combination of the sketch and JSON document as follows updates only the style while keeping Caption (ie. "Hello, world") as AutoConnectText value.
+For example, the combination of the Sketch and JSON document as follows updates only the style while keeping Caption (ie. "Hello, world") as AutoConnectText value.
 
 <i class="fab fa-js-square"></i> External JSON document for the below sketch to modify the text style.
 ```json hl_lines="4"
@@ -735,7 +737,7 @@ For example, the combination of the sketch and JSON document as follows updates 
 ```
 
 <i class="fa fa-arrow-down"></i><br>
-<i class="fa fa-code"></i> The sketch (a part of code), load above JSON.
+<i class="fa fa-code"></i> the Sketch (a part of code), load above JSON.
 ```cpp hl_lines="1"
 ACText(Caption, "Hello, world");
 AutoConnectAux helloPage("/hello", "Hello", true, { Caption });
@@ -836,9 +838,268 @@ if (!page.isValid())
   Serial.println("Validation error");
 ```
 
-### <i class="fa fa-exchange"></i> Convert data to actually type
+### <i class="fas fa-exchange-alt"></i> Convert data to actually type
 
 The values in the AutoConnectElements field of the custom Web page are all typed as String. A sketch needs to be converted to an actual data type if the data type required for sketch processing is not a String type. For the typical data type conversion method, refer to section [*Tips for data conversion*](datatips.md#convert-autoconnectelements-value-to-actual-data-type).
+
+## Place HTML elements undefined in AutoConnectElements
+
+Of the many HTML elements for markup, AutoConnet can only support a limited number. If you are designing a custom web page and the elements you want are not in AutoConnectElements, consider using an AutoConnectElement. [AutoConnectElement](acelements.md#autoconnectelement-a-basic-class-of-elements) can be applied in many cases when trying to place HTML tag elements that are undefined in AutoConnectElemets on custom web pages.
+
+!!! warning "Not all of them work"
+    The strongest constraint is the heap size required to generate HTML for the entire custom Web page. AutoConnect creates a custom web page as a chunk of String. It's not a stream. Therefore, it may not be possible to generate long HTML pages. See also [FAQ](faq.md#some-autoconnect-page-is-cut-off).
+
+### <i class="far fa-file-code"></i> Place a markup or a styled HTML tag
+
+If the HTML element you want to place is just the tag that makes up the appearance of the web page, assign the tag element directly to the [value](apielements.md#value_2) member of AutoConnectElement. If the tag you are trying to place is for static markup effects, just write the `value` as follows:
+
+```json
+{
+  "name": "headline",
+  "type": "ACElement",
+  "value": "<hr style='height:1px;border-width:0;color:gray;background-color:#52a6ed'>"
+}
+```
+
+If the element has a hierarchy like a `<table> ~ </table>`, describe the entire element in the `value`:
+
+```json
+{
+  "name": "table",
+  "type": "ACElement",
+  "value": "<table><tr><th>Board</th><th>Platform</th></tr><tr><td>NodeMCU</td><td>Espressif8266</td></tr><tr><td>ESP32-DevKitC</td><td>Espressif32</td></tr></table>"
+}
+```
+
+Also, using [AutoConnectStyle](acelements.md#autoconnectstyle) combined, you can give the style effect of only that element.
+
+```json
+{
+  "name": "tablestyle",
+  "type": "ACStyle",
+  "value": "table.style{font-family:arial,sans-serif;border-collapse:collapse;width:100%;color:black;}table.style td,table.style th{border:1px solid #dddddd;text-align:center;padding:8px;}table.style tr:nth-child(even){background-color:#dddddd;}"
+},
+{
+  "name": "table",
+  "type": "ACElement",
+  "value": "<table class='style'><tr><th>Board</th><th>Platform</th></tr><tr><td>NodeMCU</td><td>Espressif8266</td></tr><tr><td>ESP32-DevKitC</td><td>Espressif32</td></tr></table>"
+}
+```
+
+<i class="fa fa-arrow-down"></i><br>
+<i class="fa fa-eye"></i> As you see it:
+  <table class="achandling">
+  <tr>
+    <th>Board</th>
+    <th>Platform</th>
+  </tr>
+  <tr>
+    <td>NodeMCU</td>
+    <td>Espressif8266</td>
+  </tr>
+  <tr>
+    <td>ESP32-DevKitC</td>
+    <td>Espressif32</td>
+  </tr>
+</table>
+
+### <i class="far fa-file-code"></i> Place the input elements within a form
+
+There is still no dedicated AutoConnectElement for entering other than equivalent to `checkbox`, `file`, `number`, `password`, `radio` and `text` for `<input type="...">` HTML element. But you can substitute them with the AutoConnectElement.
+
+For example, if you use the `<input>` element of `type="date"` to place a field where you can enter a date, the AutoConnectElement would look like this:
+
+```json
+{
+  "name": "date",
+  "type": "ACElement",
+  "value": "<label for='picker'>Date:</label><input type='date' id='picker' name='date'>"
+}
+```
+
+And it becomes a textbox that validates the input or a special date picker interface.  
+Then, instead of accessing that AutoConnectElement directly, obtains entered date value from the POST body included in the HTTP request from the hosted ESP8266WebServer class. Its process carries out with the [AutoConnectAux page handler](achandling.md#how-you-can-reach-the-values) following:
+
+```cpp
+String aux_page_handler(AutoConnectAux &aux, PageArgument &arg) {
+  Serial.println(arg.arg("date"));  // Obtain a date value entered
+  return "";
+}
+```
+
+AutoConnect passes a [PageArgument](https://github.com/Hieromon/PageBuilder#arguments-of-invoked-user-function) to the AutoConnectAux page handler. The handler can use the [PageArgument::arg](https://github.com/Hieromon/PageBuilder#string-pageargumentargstring-name) function to get the parameters contained in the HTTP request for the page. 
+Also, the equivalent can also be implemented using [ESP8266WebServer::arg](https://github.com/esp8266/Arduino/tree/master/libraries/ESP8266WebServer#getting-information-about-request-arguments) function with the [ESP8266WebServer client request handler](https://github.com/esp8266/Arduino/tree/master/libraries/ESP8266WebServer#client-request-handlers).
+
+### <i class="fab fa-js-square"></i> Using JavaScript
+
+What is described in this section belongs to the tips of what effectiveness a web page can have using AutoConnectElement, rather than the correct usage for AutoConnect.  
+You can use AutoConnectElement to embed JavaScript into the custom Web page as with HTML elements for markup. The reason for embedding JavaScript on a page depends on your requirements, but One of the most common requirements is the need to access elements of a web page. You can implement the requirements by having the AutoConnectElement have JavaScript that contains DOM access.
+
+The following screenshot shows an example of accessing AutoConnectText via the DOM using an AutoConnectElement with JavaScript. This web page is a very simple example and returns the result of multiplying the multiplier entered in an AutoConnectInput field.
+
+<img src="images/jsmultiply.png">
+
+This custom Web page is generated from the following JSON document:
+
+```json
+{
+  "uri": "/jselement",
+  "title": "Multiply",
+  "menu": true,
+  "element": [
+    {
+      "name": "multiplier",
+      "type": "ACInput",
+      "label": "3 &times; ",
+      "apply": "number",
+      "posterior": "none"
+    },
+    {
+      "name": "op",
+      "type": "ACButton",
+      "value": " = ",
+      "action": "multi()",
+      "posterior": "none"
+    },
+    {
+      "name": "answer",
+      "type": "ACText"
+    },
+    {
+      "name": "js",
+      "type": "ACElement",
+      "value": "<script type='text/javascript'>function multi() {document.getElementById('answer').innerHTML=3*document.getElementById('multiplier').value;}</script>"
+    }
+  ]
+}  
+```
+
+An input field for a `multiplier` is defined by AutoConnectInput. The field for displaying the results exists with the name `answer`. The multiplication function is what AutoConnectElement has as JavaScript and it has the following content:
+
+```js
+function multi() {
+  document.getElementById('answer').innerHTML = 3 * document.getElementById('multiplier').value;
+}
+```
+
+And the action for calling the `multi()` function is the `=` labeled button as the AutoConnectButton element. AutoConnect generates the [**name**](acjson.md#name) attribute of each AutoConnectElement as the **Id** of the HTML tag. The Id should be useful for DOM access.
+
+!!! warning "JavaScript that is too long can cause insufficient memory"
+    If it reaches thousands of bytes, AutoConnect will not be able to complete the HTML generation for the page.
+
+### <i class="fas fa-globe"></i> Communicate with the Sketch using XHR
+
+AutoConnectElement allows having scripts that create sessions based on [**XHR**](https://developer.mozilla.org/en-US/docs/Glossary/XHR_(XMLHttpRequest)). XMLHttpRequest (XHR) is a JavaScript API to create AJAX requests. Its methods provide the ability to send network requests between the browser and a server. The Sketch simply implements the server-side process as a response handler to a normal HTTP request and can equip with a dynamic custom Web page. This technique is tricky but does not cause page transitions and is useful for implementing dynamic pages. As a matter of fact, [AutoConnectOTA](otabrowser.md#updates-with-the-web-browserupdated-wv115) class is implemented by using this technique and is a custom Web page by AutoConnectAux.
+
+Here's a simple example of JavaScript-based on XHR and a server-side request handler. It's like a clock that displays the time in real-time on an AutoConnect custom web page. The sketch in the following example is roughly divided into two structures.  
+The AutoConnectElement defined with the name `js` gets the server time with XHR and updates the response via the DOM with the AutoConnectText named `time` and substance is the following JavaScript:
+
+```js
+var xhr;
+
+function clock() {
+    xhr.open('GET', '/clock');
+    xhr.responseType = 'text';
+    xhr.send();
+}
+
+window.onclose = function() {
+    xhr.abort();
+};
+
+window.onload = function() {
+    xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (this.readyState == 4 && xhr.status == 200) {
+            document.getElementById('time').innerHTML = this.responseText;
+        }
+    };
+    setInterval(clock, 1000);
+};
+```
+
+This script issues a GET request to `/clock` every second and updates the element of Id=`time` with the text content of its response. As this script shows, it will issue a send request using the [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) object.
+
+The other component is located on the AutoConnect-hosted ESP8266WebServer server. This component gets the current time from the NTP server and sends the value as text to the client.
+
+```cpp
+void auxClock() {
+  time_t  t;
+  struct tm *tm;
+  char    dateTime[24];
+
+  t = time(NULL);
+  tm = localtime(&t);
+  sprintf(dateTime, "%04d/%02d/%02d %02d:%02d:%02d.",
+                    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+                    tm->tm_hour, tm->tm_min, tm->tm_sec);
+  server.send(200, "text/plain", dateTime);
+}
+```
+
+Then just register the `auxClock` function as a `/clock` URL handler with the hosted ESP8266Server instance.
+
+```cpp
+server.on("/clock", auxClock);
+```
+
+As you can see from the above two components, AutoConnect does not intervene in those communications and no page transitions occur. A complete sketch that integrates the above components and includes a custom Web page declaration for time display looks like this:
+
+```cpp
+#include <Arduino.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <AutoConnect.h>
+#include <time.h>
+
+static const char JSPAGE[] PROGMEM = R"'(
+{
+  "uri": "/jselement",
+  "title": "Clock",
+  "menu": true,
+  "element": [
+    {
+      "name": "time",
+      "type": "ACText"
+    },
+    {
+      "name": "js",
+      "type": "ACElement",
+      "value": "<script type='text/javascript'>var xhr;function clock(){xhr.open('GET', '/clock');xhr.responseType='text';xhr.send();}window.onclose=function(){xhr.abort();};window.onload=function(){xhr=new XMLHttpRequest();xhr.onreadystatechange=function(){if(this.readyState==4&&xhr.status==200){document.getElementById('time').innerHTML=this.responseText;}};setInterval(clock,1000);};</script>"
+    }
+  ]
+}  
+)'";
+
+ESP8266WebServer  server;
+AutoConnect portal(server);
+
+void auxClock() {
+  time_t  t;
+  struct tm *tm;
+  char    dateTime[24];
+
+  t = time(NULL);
+  tm = localtime(&t);
+  sprintf(dateTime, "%04d/%02d/%02d %02d:%02d:%02d.",
+                    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+                    tm->tm_hour, tm->tm_min, tm->tm_sec);
+  server.send(200, "text/plain", dateTime);
+}
+
+void setup() {
+  delay(1000);
+  portal.load(FPSTR(JSPAGE));
+  if (portal.begin()) {
+    server.on("/clock", auxClock);
+    configTime(0, 0, "europe.pool.ntp.org");
+  }
+}
+
+void loop() {
+  portal.handleClient();
+}
+```
 
 ## Transitions of the custom Web pages
 

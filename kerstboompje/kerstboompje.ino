@@ -1,5 +1,5 @@
 #include <Adafruit_NeoPixel.h>
-#define PIN 4
+#define PIN 8
 #define NUM_LEDS 144
 #define NUM_SPARKLE 26
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_GRB + NEO_KHZ800);
@@ -42,6 +42,3 @@ void setAll(byte red, byte green, byte blue) {
   }
   strip.show();
 }
-
-
-

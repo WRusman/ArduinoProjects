@@ -24,7 +24,7 @@ The [AutoConnectStyle](#autoconnectstyle) will insert the raw CSS code into the 
 
 ## Form and AutoConnectElements
 
-All AutoConnectElements placed on custom web pages will be contained into one form. Its form is fixed and created by AutoConnect. The form value (usually the text or checkbox you entered) is sent by [AutoConnectSubmit](#autoconnectsubmit) using the **POST** method with HTTP. The post method sends the actual form data which is a query string whose contents are the **name** and **value** of AutoConnectElements. You can retrieve the value for the parameter with the sketch from the query string with [ESP8266WebServer::arg](https://github.com/esp8266/Arduino/tree/master/libraries/ESP8266WebServer#getting-information-about-request-arguments) function or [PageArgument](https://github.com/Hieromon/PageBuilder#arguments-of-invoked-user-function) class of the [AutoConnect::on](api.md#on) handler when the form is submitted.
+All AutoConnectElements placed on custom web pages will be contained into one form. Its form is fixed and created by AutoConnect. The form value (usually the text or checkbox you entered) is sent by [AutoConnectSubmit](#autoconnectsubmit) using the **POST** method with HTTP. The post method sends the actual form data which is a query string whose contents are the **name** and **value** of AutoConnectElements. You can retrieve the value for the parameter with the Sketch from the query string with [ESP8266WebServer::arg](https://github.com/esp8266/Arduino/tree/master/libraries/ESP8266WebServer#getting-information-about-request-arguments) function or [PageArgument](https://github.com/Hieromon/PageBuilder#arguments-of-invoked-user-function) class of the [AutoConnect::on](api.md#on) handler when the form is submitted.
 
 ## AutoConnectElement - <small>A basic class of elements</small>
 
@@ -74,7 +74,7 @@ AutoConnectText | AC_Tag_None
 
 ### <i class="fa fa-caret-right"></i> type
 
-The **type** indicates the type of the element and represented as the *ACElement_t* enumeration type in the sketch. Since AutoConnectElement also acts as a variant of other elements, it can be applied to handle elements collectively. At that time, the type can be referred to by the [**typeOf()**](apielements.md#typeof) function. The following example changes the font color of all [AutoConnectText](#autoconnecttext) elements of a custom Web page to gray.
+The **type** indicates the type of the element and represented as the *ACElement_t* enumeration type in the Sketch. Since AutoConnectElement also acts as a variant of other elements, it can be applied to handle elements collectively. At that time, the type can be referred to by the [**typeOf()**](apielements.md#typeof) function. The following example changes the font color of all [AutoConnectText](#autoconnecttext) elements of a custom Web page to gray.
 
 ```cpp hl_lines="5"
 AutoConnectAux  customPage;
@@ -102,7 +102,7 @@ The enumerators for *ACElement_t* are as follows:
 -  AutoConnectText: **AC_Text**
 -  Uninitialized element: **AC_Unknown**
 
-Furthermore, to convert an entity that is not an AutoConnectElement to its native type, you must [re-interpret](https://en.cppreference.com/w/cpp/language/reinterpret_cast) that type with c++. Or, you can be coding the sketch more easily with using the [**as<T\>**](apielements.md#ast62) function.
+Furthermore, to convert an entity that is not an AutoConnectElement to its native type, you must [re-interpret](https://en.cppreference.com/w/cpp/language/reinterpret_cast) that type with c++. Or, you can be coding the Sketch more easily with using the [**as<T\>**](apielements.md#ast62) function.
 
 ```cpp hl_lines="6"
 AutoConnectAux  customPage;
@@ -241,7 +241,7 @@ Specifies the destination to save the uploaded file. The destination can be spec
 
 - **`AC_File_FS`** : Save as the SPIFFS file in flash of ESP8266/ESP32 module.
 - **`AC_File_SD`** : Save to an external SD device connected to ESP8266/ESP32 module.
-- **`AC_File_Extern`** : Pass the content of the uploaded file to the uploader which is declared by the sketch individually. Its uploader must inherit [**AutoConnectUploadHandler**](acupload.md#to-upload-to-a-device-other-than-flash-or-sd) class and implements *_open*, *_write* and *_close* function.
+- **`AC_File_Extern`** : Pass the content of the uploaded file to the uploader which is declared by the Sketch individually. Its uploader must inherit [**AutoConnectUploadHandler**](acupload.md#to-upload-to-a-device-other-than-flash-or-sd) class and implements *_open*, *_write* and *_close* function.
 
 !!! note "Built-in uploader is ready."
     AutoConnect already equips the built-in uploader for saving to the SPIFFS as AC_File_FS and the external SD as AC_File_SD. It is already implemented inside AutoConnect and will store uploaded file automatically.
@@ -252,7 +252,7 @@ Specifies a tag to add behind the HTML code generated from the element. The defa
 
 ## AutoConnectInput
 
-AutoConnectInput generates an HTML `#!html <input type="text">` tag and a `#!html <label>` tag. It can also have a placeholder. The value of the input box is passed to the destination in the query string and can be retrieved programmatically. You can also update from the sketches.
+AutoConnectInput generates an HTML `#!html <input type="text">`, `#!html <input type="number">` or `#!html <input type="password">` tag and a `#!html <label>` tag. It can also have a placeholder. The value of the input box is passed to the destination in the query string and can be retrieved programmatically. You can also update from the Sketches.
 
 <i class="fa fa-eye"></i> **Sample**<br>
 <small>**`AutoConnectInput input("input", "", "Server", "MQTT broker server");`**</small>
@@ -262,7 +262,7 @@ AutoConnectInput generates an HTML `#!html <input type="text">` tag and a `#!htm
 ### <i class="fa fa-edit"></i> Constructor
 
 ```cpp
-AutoConnectInput(const char* name, const char* value, const char* label, const char* pattern, const char* placeholder, const ACPosterior_t post)
+AutoConnectInput(const char* name, const char* value, const char* label, const char* pattern, const char* placeholder, const ACPosterior_t post, const ACInput_t apply)
 ```
 
 ### <i class="fa fa-caret-right"></i> name
@@ -299,6 +299,14 @@ A placeholder is an option string. Specification of a placeholder will generate 
 ### <i class="fa fa-caret-right"></i> post
 
 Specifies a tag to add behind the HTML code generated from the element. The default values is `AC_Tag_BR`.
+
+### <i class="fa fa-caret-right"></i> apply
+
+Specifies the type of input that the text box accepts. AutoConnectInput will generate either a `input type="text"`, `input type="password"`, or `input type="number"` tag based on the `apply` specifying as input type. The input type can be specified the following values in the *ACInput_t* enumeration type.
+
+- **`AC_Input_Text`** : `input type="text"`
+- **`AC_Input_Password`** : `input type="password"`
+- **`AC_Input_Number`** : `input type="number"`
 
 ## AutoConnectRadio
 
@@ -360,7 +368,7 @@ AutoConnectStyle(const char* name, const char* value)
 
 ### <i class="fa fa-caret-right"></i> name
 
-It is the `name` of the AutoConnectStyle element and is useful only to access this element from the sketch. It does not affect the generated HTML code.
+It is the `name` of the AutoConnectStyle element and is useful only to access this element from the Sketch. It does not affect the generated HTML code.
 
 ### <i class="fa fa-caret-right"></i> value
 
@@ -453,7 +461,7 @@ AutoConnectText(const char* name, const char* value, const char* style, const ch
 
 ### <i class="fa fa-caret-right"></i> name
 
-A `name` does not exist in the generated HTML. It provides only a means of accessing elements with the sketches.
+A `name` does not exist in the generated HTML. It provides only a means of accessing elements with the Sketches.
 
 ### <i class="fa fa-caret-right"></i> value
 
@@ -487,7 +495,7 @@ ACCheckbox ( *name* <small>\[</small> , *value* <small>\]</small> <small>\[</sma
 
 ACFile ( *name* <small>\[</small> , *value* <small>\]</small> <small>\[</small> , *label* <small>\]</small> <small>\[</small> , <small>**AC\_File\_FS**</small> | <small>**AC\_File\_SD**</small> | <small>**AC\_File\_Extern**</small> <small>\]</small> <small>\[</small> , <small>**AC\_Tag\_None**</small> | <small>**AC\_Tag\_BR**</small> | <small>**AC\_Tag\_P**</small> <small>\]</small> )
 
-ACInput ( *name* <small>\[</small> , *value* <small>\]</small> <small>\[</small> , *label* <small>\]</small> <small>\[</small> , *pattern* <small>\]</small> <small>\[</small> , *placeholder* <small>\]</small> <small>\[</small> , <small>**AC\_Tag\_None**</small> | <small>**AC\_Tag\_BR**</small> | <small>**AC\_Tag\_P**</small> <small>\]</small> )
+ACInput ( *name* <small>\[</small> , *value* <small>\]</small> <small>\[</small> , *label* <small>\]</small> <small>\[</small> , *pattern* <small>\]</small> <small>\[</small> , *placeholder* <small>\]</small> <small>\[</small> , <small>**AC\_Tag\_None**</small> | <small>**AC\_Tag\_BR**</small> | <small>**AC\_Tag\_P**</small> <small>\]</small> <small>\[</small> , <small>**AC\_Input\_Text**</small> | <small>**AC\_Input\_Password**</small> | <small>**AC\_Input\_Number**</small> <small>\]</small>)
 
 ACRadio ( *name* <small>\[</small> , *values* <small>\]</small> <small>\[</small> , *label* <small>\]</small> <small>\[</small> , <small>**AC\_Horizontal</small>** | <small>**AC\_Vertical**</small> <small>\]</small> <small>\[</small> , *checked* <small>\]</small> <small>\[</small> , <small>**AC\_Tag\_None**</small> | <small>**AC\_Tag\_BR**</small> | <small>**AC\_Tag\_P**</small> <small>\]</small> )
 
