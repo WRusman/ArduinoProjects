@@ -1,25 +1,19 @@
-//#include <TinyDebugSerial.h>
 int thInPin=2, pwmPin=0, rxval=0;
-
-//TinyDebugSerial mySerial=TinyDebugSerial();
+// pin 2 = servo in, pin 0 = pwm out to FET
 
 void setup() {
   pinMode(thInPin,INPUT);
   pinMode(pwmPin,OUTPUT);
-//  mySerial.begin(9600);
-//  mySerial.println("SETUP Complete");
 }
 
 void loop() {
-     rxval=constrain(pulseIn(thInPin, HIGH, 25000),140,240); 
-//     mySerial.print(rxval);
-//     mySerial.print(",");
-//     mySerial.println(map(rxval,160,240,20,255));
-  if (rxval>20) {
-     analogWrite(pwmPin,map(rxval,140,240,0,255));
+     rxval=constrain(pulseIn(thInPin, HIGH, 25000),140,240);  // read input and constrain values between 140 and 240
+  if (rxval>20) 
+  {
+     analogWrite(pwmPin,map(rxval,140,240,0,255)); // map output value 0-255 to input value 140-240
   }
-  else
+  else 
   {
     analogWrite(pwmPin,0);
   }
-  }
+}
