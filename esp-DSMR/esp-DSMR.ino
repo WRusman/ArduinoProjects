@@ -15,7 +15,7 @@ P1Reader reader(&mySerial,0);
 
 const char* mqtt_server = "mqtt.knuterboas.nl";
 const char* mqtt_user = "monitor";
-const char* mqtt_pass = "6d3lX0u1WOoyAu4E";
+const char* mqtt_pass = "<password>";
 const char* DSMRidTopic = "Voermanstraat/DSMR/deviceID";
 const char* DSMRdelivered1Topic = "Voermanstraat/DSMR/eDeliveredl1";
 const char* DSMRdelivered2Topic = "Voermanstraat/DSMR/eDeliveredl2";

@@ -21,7 +21,7 @@ boolean successQ = false;
 
 const char* mqtt_server = "mqtt.knuterboas.nl";
 const char* mqtt_user = "monitor";
-const char* mqtt_pass = "6d3lX0u1WOoyAu4E";
+const char* mqtt_pass = "<password>";
 const char* PVVoltTopic = "Voermanstraat/solar/PVVolt";
 const char* PVAmpTopic = "Voermanstraat/solar/PVAmp";
 const char* GridFreqTopic = "Voermanstraat/solar/GridFreq";
