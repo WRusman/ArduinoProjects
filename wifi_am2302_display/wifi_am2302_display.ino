@@ -17,7 +17,7 @@ Adafruit_AM2320 am2320 = Adafruit_AM2320();
 #define mqtt_server       "mqtt.knuterboas.nl"
 #define mqtt_port         "1883"
 #define mqtt_user         "monitor"
-#define mqtt_pass         "6d3lX0u1WOoyAu4E"
+#define mqtt_pass         "<password>"
 #define mqtt_temptopic1    "voermanstraat/buiten/temperature"
 #define mqtt_humtopic1     "voermanstraat/buiten/humidity"
 #define mqtt_temptopic2    "voermanstraat/binnen/temperature"

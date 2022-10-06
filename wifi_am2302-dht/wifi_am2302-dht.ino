@@ -17,7 +17,7 @@ DHTesp dht;
 #define mqtt_server       "mqtt.knuterboas.nl"
 #define mqtt_port         "1883"
 #define mqtt_user         "monitor"
-#define mqtt_pass         "6d3lX0u1WOoyAu4E"
+#define mqtt_pass         "<password>"
 #define mqtt_temptopic    "smitsborg/temperature/sensor1"
 #define mqtt_humtopic     "smitsborg/humidity/sensor1"
 

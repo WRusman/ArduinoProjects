@@ -8,7 +8,7 @@
 #define ONE_HOUR 3600000UL
 
 const char* ssid     = "ttn";
-const char* password = "belachelijkmakkelijk";
+const char* password = "<password>";
 const char* mqtt_server = "192.168.1.138";
 const char* ntpServerName = "nl.pool.ntp.org";
 WiFiClient espClient;

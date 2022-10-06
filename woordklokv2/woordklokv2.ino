@@ -1,14 +1,14 @@
+#include <ESP8266WiFi.h>          
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>          
+#include <Ticker.h>
 #include <TimeLib.h>
-#include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <Adafruit_NeoPixel.h>
 
-bool debug = true;
-#define SerialDebug(text)   Serial.print(text);
-#define SerialDebugln(text) Serial.println(text);
-
-char ssid[] = "WOMANETOMA24";             //  your network SSID (name)
-char pass[] = "<password>";        // your network password
+Ticker ticker;
+WiFiClient espClient;
 
 static const char ntpServerName[] = "nl.pool.ntp.org";
 const int timeZone = 1;             // Central European Time
@@ -50,34 +50,35 @@ void setup() {
   delay(100);
   randomSeed(analogRead(1));
   
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-  // connect to the defined SSID
-  WiFi.begin(ssid, pass);
-  
-   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-
-    // create an array of numbers and shuffle them
-    int colornumbers[8] = {1,2,3,4,5,6,7,8} ;
-    for (int i= 0; i< 8; i++)
-    {
-      int pos = random(8);
-      int t = colornumbers[i];  
-      colornumbers[i] = colornumbers[pos];
-      colornumbers[pos] = t;
-    }
-
-    // Pick 6 colors from the array
-    color1 = RGBColors[colornumbers[random(8)]];
-    color2 = RGBColors[colornumbers[random(8)]];
-    color3 = RGBColors[colornumbers[random(8)]];
-    color4 = RGBColors[colornumbers[random(8)]];
-    color5 = RGBColors[colornumbers[random(8)]];
-    color6 = RGBColors[colornumbers[random(8)]];
-
+  WiFiManager wifiManager;
+  wifiManager.setAPCallback(configModeCallback);
+  if (!wifiManager.autoConnect("woordklok")) {
+    Serial.println("failed to connect and hit timeout");
+    ESP.reset();
+    delay(1000);
   }
+   
+  Serial.println("connected...yeey :)");
+  ticker.detach();
+  digitalWrite(BUILTIN_LED, LOW);
+
+  // create an array of numbers and shuffle them
+  int colornumbers[8] = {1,2,3,4,5,6,7,8} ;
+  for (int i= 0; i< 8; i++)
+  {
+    int pos = random(8);
+    int t = colornumbers[i];  
+    colornumbers[i] = colornumbers[pos];
+    colornumbers[pos] = t;
+  }
+
+  // Pick 6 colors from the array
+  color1 = RGBColors[colornumbers[random(8)]];
+  color2 = RGBColors[colornumbers[random(8)]];
+  color3 = RGBColors[colornumbers[random(8)]];
+  color4 = RGBColors[colornumbers[random(8)]];
+  color5 = RGBColors[colornumbers[random(8)]];
+  color6 = RGBColors[colornumbers[random(8)]];
 
   Serial.print("IP number assigned by DHCP is ");
   Serial.println(WiFi.localIP());
@@ -138,6 +139,19 @@ void sendNTPpacket(IPAddress &address)
   Udp.beginPacket(address, 123); 
   Udp.write(packetBuffer, NTP_PACKET_SIZE);
   Udp.endPacket();
+}
+
+void tick()
+{
+  int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
+  digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
+}
+
+void configModeCallback (WiFiManager *myWiFiManager) {
+  Serial.println("Entered config mode");
+  Serial.println(WiFi.softAPIP());
+  Serial.println(myWiFiManager->getConfigPortalSSID());
+  ticker.attach(0.2, tick);
 }
 
 void setleds(int startled, int stopled, RGB led_color) {
@@ -344,24 +358,20 @@ setleds(0,86,black);    // Turn the comple strip black or "off";
 }
 
 void checkDST(){
-      int beginDSTDate=  (31 - (5* year() /4 + 4) % 7);
-      int beginDSTMonth=3;  //last sunday of october
-      int endDSTDate= (31 - (5 * year() /4 + 1) % 7);
-      int endDSTMonth=10;
-      // DST is valid as:
-      if (((month() > beginDSTMonth) && (month() < endDSTMonth))
-        || ((month() == beginDSTMonth) && (day() >= beginDSTDate))
-        || ((month() == endDSTMonth) && (day() <= endDSTDate)))
-        {
-          Serial.println("DST"); 
-          DSTactive=1;
-        }
-        else
-        {
-          Serial.println("No DST");         
-          DSTactive=0;
-        }
-}
+    int dow=weekday(); // day of week (as in 1-7)
+    int mo=month();
+    int d=day(); // (as in 1-31)
+    int h=hour(); 
+    if (dow == 7 && mo == 10 && d >= 25 && h == 3 && DSTactive==1) {
+        DSTactive=0;
+        Serial.println("No DST");
+    } 
+    else {
+     //if (dow == 7 && mo == 3 && d >= 25 && h ==2 && DSTactive==0){
+        DSTactive=1; 
+        Serial.println("DST");
+    } 
+  }
 
 void loop() {
     checkDST();
