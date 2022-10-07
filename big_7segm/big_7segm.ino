@@ -3,13 +3,11 @@
 
 // RTC has to be set to UTC, the program will adjust the RTC time according to the TimeChangeRule
 
-// Central European Time (Frankfurt, Paris)
-TimeChangeRule CEST = {"CEST", Last, Sun, Mar, 2, 120};     // Central European Summer Time
-TimeChangeRule CET = {"CET ", Last, Sun, Oct, 3, 60};       // Central European Standard Time
-Timezone myTZ(CEST, CET);
-
-TimeChangeRule *tcr;        //pointer to the time change rule, use to get TZ abbrev
-
+  TimeChangeRule *tcr;
+  TimeChangeRule nlDST = {"DST", Last, Sun, Mar, 1, +120};  //UTC + 2 hours
+  TimeChangeRule nlSTD = {"STD", Last, Sun, Oct, 1, +60};   //UTC + 1 hour
+  Timezone myTZ(nlDST, nlSTD);
+  
 int strobePin = 3;
 int dataPin = 4;
 int clockPin = 5;
