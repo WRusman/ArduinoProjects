@@ -7,16 +7,40 @@
 #include <WiFiManager.h>
 #include <Ticker.h>
 
-int strobePin = 5;  // D1 on the wemos D1 mini
+int strobePin = 13;  // D7 on the wemos D1 mini
 int dataPin = 4;    // D2 on the wemos D1 mini
+
 int clockPin = 0;   // D3 on the wemos D1 mini
-int buttonPin = 15; // D8 on the wemos D1 mini
+int setupPin = 15; // D8 on the wemos D1 mini
+int modePin = 12; // D6 on the wemos D1 mini
+// BUILTIN_LED = 2 // D4 on the wemos D1 mini, LOW for ON
 
 int calcYear,calcMonth,calcDay,calcHour,calcMinute,calcSecond,toDateDays,toDateHours,toDateMinutes,toDateSeconds,countDownDays,countDownHours,countDownMinutes,countDownSeconds,buttonState,lastButtonState = LOW ;
 
+//     
+//  2--
+// 1|  |3
+//  5--
+// 6|  |4
+//  7--
+// bit 8 = not used
+
+//0 = 11110110 = 246
+//1 = 00110000 = 48
+//2 = 01101110 = 110
+//3 = 01111010 = 122
+//4 = 10111000 = 184
+//5 = 11011010 = 218
+//6 = 11011110 = 222
+//7 = 01110000 = 112
+//8 = 11111110 = 254
+//9 = 11111010 = 250
+
+
 byte segChar[] = { 246, 48, 110, 122, 184, 218, 222, 112, 254, 250, 127, 0};
+
 char countdowndate[16], fscountdowndate[16];
-unsigned long toTime, lastDebounceTime = 0, debounceDelay = 2000;
+unsigned long toTime, lastDebounceTime = 0, debounceDelay = 3;
 
 Ticker ticker;
 WiFiUDP ntpUDP;
@@ -28,8 +52,22 @@ void setup() {
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
   pinMode(BUILTIN_LED, OUTPUT);
-  pinMode(buttonPin, INPUT);
-
+  
+  pinMode(setupPin, INPUT);
+  pinMode(modePin, INPUT);
+  
+  digitalWrite(strobePin, LOW);
+  shiftOut(dataPin, clockPin, MSBFIRST, 236);  //p
+  shiftOut(dataPin, clockPin, MSBFIRST, 22);   //u
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);
+  shiftOut(dataPin, clockPin, MSBFIRST, 142);  //t
+  shiftOut(dataPin, clockPin, MSBFIRST, 12);   //r
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
+  shiftOut(dataPin, clockPin, MSBFIRST, 126);  //a  
+  shiftOut(dataPin, clockPin, MSBFIRST, 142);  //t      
+  shiftOut(dataPin, clockPin, MSBFIRST, 218);  //S  
+  digitalWrite(strobePin, HIGH);
+ 
   WiFi.mode(WIFI_STA);
   Serial.begin(115200);
   Serial.setDebugOutput(true);  
@@ -85,38 +123,66 @@ void loop() {
     
   if ((checkDST(toTime)==0) and (checkDST(local_time)==1)) toDateSeconds += 7200;
   if ((checkDST(toTime)==1) and (checkDST(local_time)==0)) toDateSeconds -= 3600;
-
   if (toDateSeconds < 0) toDateSeconds = 0;
   toDateMinutes = floor(toDateSeconds / 60);
   toDateHours = floor(toDateMinutes / 60);
   toDateDays = floor(toDateHours / 24);
 
-  countDownDays = toDateDays;
-  countDownHours = toDateHours -(countDownDays * 24); 
-  countDownMinutes = toDateMinutes - (countDownHours * 60) - ((countDownDays *24) * 60); 
-  countDownSeconds = toDateSeconds - (countDownMinutes * 60) - ((countDownHours * 60) *60) - (((countDownDays * 24) * 60) * 60); 
-
-  Serial.print(countDownDays);
-  Serial.print(":");
-  Serial.print(countDownHours);
-  Serial.print(":");
-  Serial.print(countDownMinutes);
-  Serial.print(":");
-  Serial.println(countDownSeconds);
-  delay(1000);
-
-  digitalWrite(strobePin, LOW);
-  shiftOut(dataPin, clockPin, MSBFIRST, segChar[countDownMinutes % 10]);  
-  shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownMinutes /10) % 10]);  
-  shiftOut(dataPin, clockPin, MSBFIRST, segChar[10]);
-  shiftOut(dataPin, clockPin, MSBFIRST, segChar[countDownHours % 10]);  
-  shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownHours/10) % 10]);  
-  shiftOut(dataPin, clockPin, MSBFIRST, segChar[10]);
-  shiftOut(dataPin, clockPin, MSBFIRST, segChar[countDownDays % 10]);  
-  shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownDays/10) % 10]);  
-  shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownDays/100) % 10]);  
-  digitalWrite(strobePin, HIGH);
- 
+  if (digitalRead(modePin) == 1) {
+    countDownDays = toDateDays;
+    countDownHours = toDateHours -(countDownDays * 24); 
+    countDownMinutes = toDateMinutes - (countDownHours * 60) - ((countDownDays *24) * 60); 
+  
+    Serial.print(countDownDays);
+    Serial.print(":");
+    Serial.print(countDownHours);
+    Serial.print(":");
+    Serial.println(countDownMinutes);
+    delay(1000);
+  
+    digitalWrite(strobePin, LOW);
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[countDownMinutes % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownMinutes /10) % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[10]);
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[countDownHours % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownHours/10) % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[10]);
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[countDownDays % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownDays/10) % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownDays/100) % 10]);  
+    digitalWrite(strobePin, HIGH);
+  } 
+  else {
+    countDownDays = toDateDays;
+    countDownHours = toDateHours; 
+    countDownMinutes = toDateMinutes - ((toDateHours -(countDownDays * 24)) * 60) - ((countDownDays *24) * 60); 
+    countDownSeconds = toDateSeconds - (countDownMinutes * 60) - (((toDateHours -(countDownDays * 24)) * 60) *60) - (((countDownDays * 24) * 60) * 60); 
+    
+    if (countDownHours > 999){
+    countDownHours = 999;
+    countDownMinutes = 99;
+    countDownSeconds = 99;
+    }
+    
+    Serial.print(countDownHours);
+    Serial.print(":");
+    Serial.print(countDownMinutes);
+    Serial.print(":");
+    Serial.println(countDownSeconds);
+    delay(1000);
+  
+    digitalWrite(strobePin, LOW);
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[countDownSeconds % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownSeconds /10) % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[10]);
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[countDownMinutes % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownMinutes /10) % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[10]);
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[countDownHours % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownHours/10) % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[(countDownHours/100) % 10]);  
+    digitalWrite(strobePin, HIGH);
+  }
 }
 
 
@@ -199,12 +265,12 @@ void createElements(const char *str)
 }
 
 void checkButton(){
-  buttonState = digitalRead(buttonPin);
+  buttonState = digitalRead(setupPin);
   if (buttonState == 1){
     if (buttonState == lastButtonState) {
-      lastDebounceTime += 1000;
+      lastDebounceTime += 1;
     }
-    if (lastDebounceTime > debounceDelay) {
+    if (lastDebounceTime >= debounceDelay) {
      configPortal();
      lastDebounceTime = 0;
     }
@@ -216,6 +282,18 @@ void checkButton(){
 }
 
 void configPortal(){
+  digitalWrite(strobePin, LOW);
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);   
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
+  shiftOut(dataPin, clockPin, MSBFIRST, 236);  //p
+  shiftOut(dataPin, clockPin, MSBFIRST, 22);   //u
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
+  shiftOut(dataPin, clockPin, MSBFIRST, 142);  //t     
+  shiftOut(dataPin, clockPin, MSBFIRST, 238);  //e     
+  shiftOut(dataPin, clockPin, MSBFIRST, 218);  //S  
+  digitalWrite(strobePin, HIGH);
+
   ticker.attach(0.6, tick);
   WiFiManagerParameter custom_countdown_date("date", "countdown to: yyyy-MM-dd HH:mm", countdowndate, 16);
   WiFiManager wm;
