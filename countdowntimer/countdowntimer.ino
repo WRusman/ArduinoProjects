@@ -193,6 +193,18 @@ void tick()
 }
 
 void configModeCallback (WiFiManager *myWiFiManager) {
+  digitalWrite(strobePin, LOW);
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);   
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
+  shiftOut(dataPin, clockPin, MSBFIRST, 236);  //p
+  shiftOut(dataPin, clockPin, MSBFIRST, 22);   //u
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
+  shiftOut(dataPin, clockPin, MSBFIRST, 142);  //t     
+  shiftOut(dataPin, clockPin, MSBFIRST, 238);  //e     
+  shiftOut(dataPin, clockPin, MSBFIRST, 218);  //S  
+  digitalWrite(strobePin, HIGH);
+  
   Serial.println("Entered config mode");
   Serial.println(WiFi.softAPIP());
   Serial.println(myWiFiManager->getConfigPortalSSID());
@@ -282,18 +294,6 @@ void checkButton(){
 }
 
 void configPortal(){
-  digitalWrite(strobePin, LOW);
-  shiftOut(dataPin, clockPin, MSBFIRST, 0);   
-  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
-  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
-  shiftOut(dataPin, clockPin, MSBFIRST, 236);  //p
-  shiftOut(dataPin, clockPin, MSBFIRST, 22);   //u
-  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
-  shiftOut(dataPin, clockPin, MSBFIRST, 142);  //t     
-  shiftOut(dataPin, clockPin, MSBFIRST, 238);  //e     
-  shiftOut(dataPin, clockPin, MSBFIRST, 218);  //S  
-  digitalWrite(strobePin, HIGH);
-
   ticker.attach(0.6, tick);
   WiFiManagerParameter custom_countdown_date("date", "countdown to: yyyy-MM-dd HH:mm", countdowndate, 16);
   WiFiManager wm;
