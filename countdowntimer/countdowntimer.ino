@@ -37,6 +37,7 @@ int calcYear,calcMonth,calcDay,calcHour,calcMinute,calcSecond,toDateDays,toDateH
 //9 = 11111010 = 250
 
 
+
 byte segChar[] = { 246, 48, 110, 122, 184, 218, 222, 112, 254, 250, 127, 0};
 
 char countdowndate[16], fscountdowndate[16];
@@ -58,7 +59,7 @@ void setup() {
   
   digitalWrite(strobePin, LOW);
   shiftOut(dataPin, clockPin, MSBFIRST, 236);  //p
-  shiftOut(dataPin, clockPin, MSBFIRST, 22);   //u
+  shiftOut(dataPin, clockPin, MSBFIRST, 182);  //u
   shiftOut(dataPin, clockPin, MSBFIRST, 0);
   shiftOut(dataPin, clockPin, MSBFIRST, 142);  //t
   shiftOut(dataPin, clockPin, MSBFIRST, 12);   //r
@@ -121,7 +122,7 @@ void loop() {
 
   toDateSeconds = (toTime - local_time);
     
-  if ((checkDST(toTime)==0) and (checkDST(local_time)==1)) toDateSeconds += 7200;
+  if ((checkDST(toTime)==0) and (checkDST(local_time)==1)) toDateSeconds += 3600;
   if ((checkDST(toTime)==1) and (checkDST(local_time)==0)) toDateSeconds -= 3600;
   if (toDateSeconds < 0) toDateSeconds = 0;
   toDateMinutes = floor(toDateSeconds / 60);
@@ -198,7 +199,7 @@ void configModeCallback (WiFiManager *myWiFiManager) {
   shiftOut(dataPin, clockPin, MSBFIRST, 0);  
   shiftOut(dataPin, clockPin, MSBFIRST, 0);  
   shiftOut(dataPin, clockPin, MSBFIRST, 236);  //p
-  shiftOut(dataPin, clockPin, MSBFIRST, 22);   //u
+  shiftOut(dataPin, clockPin, MSBFIRST, 182);  //u
   shiftOut(dataPin, clockPin, MSBFIRST, 0);  
   shiftOut(dataPin, clockPin, MSBFIRST, 142);  //t     
   shiftOut(dataPin, clockPin, MSBFIRST, 238);  //e     
