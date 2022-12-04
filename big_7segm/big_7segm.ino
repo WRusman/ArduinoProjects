@@ -1,95 +1,159 @@
-#include <DS1307RTC.h>
-#include <Timezone.h>
+#include <ESP8266WiFi.h>          
+#include <Timezone.h>             //https://github.com/JChristensen/Timezone
+#include <NTPClient.h>            //https://github.com/arduino-libraries/NTPClient
+#include <WiFiManager.h>
+#include <Ticker.h>
 
-// RTC has to be set to UTC, the program will adjust the RTC time according to the TimeChangeRule
+int strobePin = 13;  // D7 on the wemos D1 mini
+int dataPin =  4;    // D2 on the wemos D1 mini
 
-  TimeChangeRule *tcr;
-  TimeChangeRule nlDST = {"DST", Last, Sun, Mar, 1, +120};  //UTC + 2 hours
-  TimeChangeRule nlSTD = {"STD", Last, Sun, Oct, 1, +60};   //UTC + 1 hour
-  Timezone myTZ(nlDST, nlSTD);
-  
-int strobePin = 3;
-int dataPin = 4;
-int clockPin = 5;
-// SDA = A4
-// SCL = A5
+int clockPin = 0;   // D3 on the wemos D1 mini
+int setupPin = 15; // D8 on the wemos D1 mini
+// BUILTIN_LED = 2 // D4 on the wemos D1 mini, LOW for ON
+
+int nowminutes, nowhours, buttonState,lastButtonState = LOW ;
+
+//     
+//  2--
+// 1|  |3
+//  5--
+// 6|  |4
+//  7--
+// bit 8 = not used
+
+//0 = 11110110 = 246
+//1 = 00110000 = 48
+//2 = 01101110 = 110
+//3 = 01111010 = 122
+//4 = 10111000 = 184
+//5 = 11011010 = 218
+//6 = 11011110 = 222
+//7 = 01110000 = 112
+//8 = 11111110 = 254
+//9 = 11111010 = 250
 
 byte segChar[] = { 246, 48, 110, 122, 184, 218, 222, 112, 254, 250, 127, 0};
-int hour1,hour2,minute1,minute2,nowminutes,nowhours;
-bool colon = true;
+
+char countdowndate[16], fscountdowndate[16];
+unsigned long toTime, lastDebounceTime = 0, debounceDelay = 3;
+
+Ticker ticker;
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP);
 
 void setup() {
-    pinMode(strobePin, OUTPUT);
-    pinMode(clockPin, OUTPUT);
-    pinMode(dataPin, OUTPUT);
-    colon=true;
-    Serial.begin(57600);
-    setSyncProvider(RTC.get);   // the function to get the time from the RTC
-    if(timeStatus()!= timeSet)
-        Serial.println("Unable to sync with the RTC");
-    else
-        Serial.println("RTC has set the system time");
+  pinMode(strobePin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
+  pinMode(BUILTIN_LED, OUTPUT);
+  
+  pinMode(setupPin, INPUT);
+    
+  digitalWrite(strobePin, LOW);
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);
+  digitalWrite(strobePin, HIGH);
+
+  WiFi.mode(WIFI_STA);
+  Serial.begin(115200);
+  Serial.setDebugOutput(true);  
+  delay(3000);
+
+  ticker.attach(0.6, tick);
+  WiFiManager wm;
+  wm.setAPCallback(configModeCallback);
+  if (!wm.autoConnect("klok")) {
+    Serial.println("failed to connect and hit timeout");
+    ESP.reset();
+    delay(1000);
+  }
+  Serial.println("connected...yeey :)");
+  ticker.detach();
+  digitalWrite(BUILTIN_LED, LOW);
+  timeClient.begin();
 }
 
 void loop() {
-    time_t utc = now();
-    time_t local = myTZ.toLocal(utc, &tcr);
-    Serial.println();
-    printDateTime(local, tcr -> abbrev);
-    delay(1000);
+  checkButton();
+  timeClient.update();  
+  TimeChangeRule nlDST = {"DST", Last, Sun, Mar, 1, +120};  //UTC + 2 hours
+  TimeChangeRule nlSTD = {"STD", Last, Sun, Oct, 1, +60};   //UTC + 1 hour
+  Timezone MyTZ(nlDST, nlSTD);
+  time_t local_time = MyTZ.toLocal(timeClient.getEpochTime());
+  printDateTime(local_time);
+   
+  delay(1000);
 }
 
 
-// format and print a time_t value, with a time zone appended.
-void printDateTime(time_t t, const char *tz)
+// format and print a time_t value.
+void printDateTime(time_t t)
 {
-    char buf[32];
-    char m[4];    // temporary storage for month string (DateStrings.cpp uses shared buffer)
-    strcpy(m, monthShortStr(month(t)));
-    sprintf(buf, "%.2d:%.2d:%.2d %s %.2d %s %d %s",
-        hour(t), minute(t), second(t), dayShortStr(weekday(t)), day(t), m, year(t), tz);
-
     nowminutes=minute(t);
     nowhours=hour(t);
 
-    if (nowminutes < 10) {
-      minute2=nowminutes;      
-      minute1=0;
-    }
-    else {
-      minute2=nowminutes % 10;      
-      minute1=(nowminutes /10) % 10;
-    }
-    
-    if (nowhours < 10) {
-      hour2=nowhours;      
-      hour1=0;
-    }
-    else {
-      hour2=nowhours % 10;      
-      hour1=(nowhours/10) % 10;
-    }
-
-    Serial.print(hour1);
-    Serial.print(hour2);
+    Serial.print(nowhours);
     Serial.print(":");
-    Serial.print(minute1);
-    Serial.println(minute2);
+    Serial.println(nowminutes);
 
     digitalWrite(strobePin, LOW);
-    shiftOut(dataPin, clockPin, MSBFIRST, segChar[minute2]);  
-    shiftOut(dataPin, clockPin, MSBFIRST, segChar[minute1]);  
-    if (colon==true) {shiftOut(dataPin, clockPin, MSBFIRST, segChar[10]);}else{shiftOut(dataPin, clockPin, MSBFIRST, segChar[11]);}  
-    shiftOut(dataPin, clockPin, MSBFIRST, segChar[hour2]);  
-    shiftOut(dataPin, clockPin, MSBFIRST, segChar[hour1]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[nowminutes % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[(nowminutes / 10) % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[nowhours % 10]);  
+    shiftOut(dataPin, clockPin, MSBFIRST, segChar[(nowhours / 10) % 10]);  
     digitalWrite(strobePin, HIGH);
-
-    delay(1000);
-    
-    if (colon==true){
-      colon=false;
-    }
-    else{
-      colon=true;
-    }
 }
+
+void tick()
+{
+  int state = digitalRead(BUILTIN_LED);  // get the current state of GPIO1 pin
+  digitalWrite(BUILTIN_LED, !state);     // set pin to the opposite state
+}
+
+void configModeCallback (WiFiManager *myWiFiManager) {
+  digitalWrite(strobePin, LOW);
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);   
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
+  shiftOut(dataPin, clockPin, MSBFIRST, 0);  
+  digitalWrite(strobePin, HIGH);
+  
+  Serial.println("Entered config mode");
+  Serial.println(WiFi.softAPIP());
+  Serial.println(myWiFiManager->getConfigPortalSSID());
+  ticker.attach(0.2, tick);
+}
+
+void checkButton(){
+  buttonState = digitalRead(setupPin);
+  if (buttonState == 1){
+    if (buttonState == lastButtonState) {
+      lastDebounceTime += 1;
+    }
+    if (lastDebounceTime >= debounceDelay) {
+     configPortal();
+     lastDebounceTime = 0;
+    }
+  }
+  else {
+    lastDebounceTime = 0;
+  }
+  lastButtonState = buttonState;
+}
+
+void configPortal(){
+  ticker.attach(0.6, tick);
+  WiFiManager wm;
+  wm.setAPCallback(configModeCallback);
+  if (!wm.startConfigPortal("klok")) {
+    Serial.println("failed to connect and hit timeout");
+    ESP.reset();
+    delay(1000);
+  }
+  Serial.println("connected...yeey :)");
+  ticker.detach();
+  digitalWrite(BUILTIN_LED, LOW);
+  ESP.reset();
+}  

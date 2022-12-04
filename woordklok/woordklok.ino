@@ -7,8 +7,8 @@ bool debug = true;
 #define SerialDebug(text)   Serial.print(text);
 #define SerialDebugln(text) Serial.println(text);
 
-char ssid[] = "WOMANETOMA24";             //  your network SSID (name)
-char pass[] = "<password>";        // your network password
+char ssid[] = "WOMANETOMA";             //  your network SSID (name)
+char pass[] = "koekenbakkerknol";        // your network password
 
 static const char ntpServerName[] = "nl.pool.ntp.org";
 const int timeZone = 1;             // Central European Time
