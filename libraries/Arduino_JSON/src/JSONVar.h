@@ -1,5 +1,5 @@
 /*
-  This file is part of the Arduino JSON library.
+  This file is part of the Arduino_JSON library.
   Copyright (c) 2019 Arduino SA. All rights reserved.
 
   This library is free software; you can redistribute it and/or
@@ -31,7 +31,12 @@ class JSONVar : public Printable {
 public:
   JSONVar();
   JSONVar(bool b);
+  JSONVar(char i);
+  JSONVar(unsigned char i);
+  JSONVar(short i);
+  JSONVar(unsigned short i);
   JSONVar(int i);
+  JSONVar(unsigned int i);
   JSONVar(long l);
   JSONVar(unsigned long ul);
   JSONVar(double d);
@@ -47,17 +52,29 @@ public:
   virtual size_t printTo(Print& p) const;
 
   operator bool() const;
+  operator char() const;
+  operator unsigned char() const;
+  operator short() const;
+  operator unsigned short() const;
   operator int() const;
-  operator long() const;
+  operator unsigned int() const;
+  operator long () const;
+  operator unsigned long () const;
   operator double() const;
-  operator const char*() const;
+  operator const char* () const;
+  operator const String () const;
 
   void operator=(const JSONVar& v);
 #if __cplusplus >= 201103L || defined(__GXX_EXPERIMENTAL_CXX0X__)
   JSONVar& operator=(JSONVar&& v);
 #endif
   void operator=(bool b);
+  void operator=(char i);
+  void operator=(unsigned char i);
+  void operator=(short i);
+  void operator=(unsigned short i);
   void operator=(int i);
+  void operator=(unsigned int i);
   void operator=(long l);
   void operator=(unsigned long ul);
   void operator=(double d);
@@ -71,12 +88,22 @@ public:
   JSONVar operator[](const char* key);
   JSONVar operator[](const String& key);
   JSONVar operator[](int index);
-  JSONVar operator[](const JSONVar& key);
+  JSONVar operator[](const JSONVar& key);  
 
   int length() const;
   JSONVar keys() const;
   bool hasOwnProperty(const char* key) const;
   bool hasOwnProperty(const String& key) const;
+  
+  bool hasPropertyEqual(const char* key,  const char* value) const;  
+  bool hasPropertyEqual(const char* key,  const JSONVar& value) const;  
+  bool hasPropertyEqual(const String& key,  const String& value) const;  
+  bool hasPropertyEqual(const String& key,  const JSONVar& value) const;  
+  
+  JSONVar filter(const char* key, const char* value) const;
+  JSONVar filter(const char* key, const JSONVar& value) const;
+  JSONVar filter(const String& key, const String& value) const;
+  JSONVar filter(const String& key, const JSONVar& value) const;
 
   static JSONVar parse(const char* s);
   static JSONVar parse(const String& s);
