@@ -1,21 +1,18 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2020
+// ArduinoJson - https://arduinojson.org
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
-#include <ArduinoJson/Numbers/Integer.hpp>
-#include <ArduinoJson/Numbers/parseNumber.hpp>
-#include <ArduinoJson/Variant/VariantImpl.hpp>
+#include <ArduinoJson.hpp>
 #include <catch.hpp>
 
-using namespace ARDUINOJSON_NAMESPACE;
+using namespace ArduinoJson;
+using namespace ArduinoJson::detail;
 
 TEST_CASE("Test unsigned integer overflow") {
   VariantData first, second;
-  first.init();
-  second.init();
 
   // Avoids MSVC warning C4127 (conditional expression is constant)
-  size_t integerSize = sizeof(Integer);
+  size_t integerSize = sizeof(JsonInteger);
 
   if (integerSize == 8) {
     parseNumber("18446744073709551615", first);
@@ -25,13 +22,30 @@ TEST_CASE("Test unsigned integer overflow") {
     parseNumber("4294967296", second);
   }
 
-  REQUIRE(first.type() == uint8_t(VALUE_IS_POSITIVE_INTEGER));
+  REQUIRE(first.type() == uint8_t(VALUE_IS_UNSIGNED_INTEGER));
+  REQUIRE(second.type() == uint8_t(VALUE_IS_FLOAT));
+}
+
+TEST_CASE("Test signed integer overflow") {
+  VariantData first, second;
+
+  // Avoids MSVC warning C4127 (conditional expression is constant)
+  size_t integerSize = sizeof(JsonInteger);
+
+  if (integerSize == 8) {
+    parseNumber("-9223372036854775808", first);
+    parseNumber("-9223372036854775809", second);
+  } else {
+    parseNumber("-2147483648", first);
+    parseNumber("-2147483649", second);
+  }
+
+  REQUIRE(first.type() == uint8_t(VALUE_IS_SIGNED_INTEGER));
   REQUIRE(second.type() == uint8_t(VALUE_IS_FLOAT));
 }
 
 TEST_CASE("Invalid value") {
   VariantData result;
-  result.init();
 
   parseNumber("6a3", result);
 

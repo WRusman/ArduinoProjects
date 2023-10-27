@@ -1,5 +1,5 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2020
+// ArduinoJson - https://arduinojson.org
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 // Include any header that might use the conflicting macros
@@ -39,9 +39,21 @@
 #define _max()
 #define _min()
 
+// Realtek Ameba
+#define isdigit(c) (((c) >= '0') && ((c) <= '9'))
+#define isprint(c)
+#define isxdigit(c)
+#define isspace(c)
+#define isupper(c)
+#define islower(c)
+#define isalpha(c)
+
 // issue #839
 #define BLOCKSIZE
 #define CAPACITY
+
+// issue #1905
+#define _current
 
 // catch.hpp mutes several warnings, this file also allows to detect them
 #include "ArduinoJson.h"

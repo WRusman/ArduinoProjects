@@ -5,7 +5,7 @@
 #include <limits>
 
 namespace my {
-using ARDUINOJSON_NAMESPACE::isinf;
+using ArduinoJson::detail::isinf;
 }  // namespace my
 
 TEST_CASE("ARDUINOJSON_ENABLE_INFINITY == 1") {
@@ -22,7 +22,8 @@ TEST_CASE("ARDUINOJSON_ENABLE_INFINITY == 1") {
   }
 
   SECTION("deserializeJson()") {
-    auto err = deserializeJson(doc, "[Infinity,-Infinity,+Infinity]");
+    DeserializationError err =
+        deserializeJson(doc, "[Infinity,-Infinity,+Infinity]");
     float a = doc[0];
     float b = doc[1];
     float c = doc[2];
