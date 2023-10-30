@@ -5,7 +5,8 @@ The 7-segment displays are printed from a design from thingyverse
 
 The led strip inside is connected like this :
 
-    3  4  5            26 27 28      47 48 49          70 71 72      91 92 93
+```
+`    3  4  5            26 27 28      47 48 49          70 71 72      91 92 93
   2          6       25        29  46        50      69        73  90        94
   1          7  21   24        30  45        51  65  68        74  89        95
   0          8       23        31  44        52      67        75  88        96
@@ -15,3 +16,4 @@ The led strip inside is connected like this :
   14        18       37        41  58        62      81        85  102       106
     15 16 17           38 39 40      59 60 61          82 83 84     103 104 105
 
+```
