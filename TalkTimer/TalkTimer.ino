@@ -1,12 +1,12 @@
-#include <ArduinoJson.h>
-#include <LittleFS.h>
-#include <FS.h> 
-#include <WiFi.h>          
+#include <ArduinoJson.h>          //https://github.com/arduino-libraries/Arduino_JSON/
+#include <LittleFS.h>             //https://github.com/espressif/arduino-esp32/
+#include <FS.h>                   //https://github.com/espressif/arduino-esp32/
+#include <WiFi.h>                 //https://github.com/espressif/arduino-esp32/ 
 #include <Timezone.h>             //https://github.com/JChristensen/Timezone
 #include <NTPClient.h>            //https://github.com/arduino-libraries/NTPClient
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
-#include <Ticker.h>
-#include <ESPAsyncWebServer.h>
+#include <Ticker.h>               //https://github.com/sstaub/Ticker
+#include <ESPAsyncWebServer.h>    //https://github.com/me-no-dev/ESPAsyncWebServer
 
 #include "displayfunctions.h"  //ledstrip display functions
 #include "index.h"  //Main Webpage
