@@ -1,9 +1,10 @@
 Timer based on ESP32-wroom and WS2812 led strips to create a timer that can be used on symposia to let speakers know how much time they have left, or to show how much they are over time.
-The web-interface also shows the remaining time on the webpage and allows adjustment of timezone and wether the clock counts down to zero, or keeps counting after zero.
+Intially when there is no wifi connection available the esp will start a wifimanager network 'TalkTimer" to allow configuration of the wifi connection.
+After connection a web-interface is started for setting the end time, starting and pausing the countdown and showing the same remaining time as the clock itself.
+ 
+The settings on the web-interface allow adjustment of timezone and whether the clock counts down to zero, or keeps counting the overtime after the set end time.
 
-The 7-segment displays are printed from a design from thingyverse
-
-The led strip inside is connected like this :
+The 7-segment displays are printed from a design from thingiverse, the led strip inside is connected like this :
 
 ```
 `    3  4  5            26 27 28      47 48 49          70 71 72      91 92 93
