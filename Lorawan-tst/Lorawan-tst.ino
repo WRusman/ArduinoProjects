@@ -1,40 +1,24 @@
-/**
- * This is an example of joining, sending and receiving data via LoRaWAN using a more minimal interface.
- * 
- * The example is configured for OTAA, set your keys into the variables below.
- * 
- * The example will upload a counter value periodically, and will print any downlink messages.
- * 
- * please disable AT_SUPPORT in tools menu
- *
- * David Brodrick.
- */
-#include "LoRaWanMinimal_APP.h"
+#include "LoRaWan_APP.h"
 #include "Arduino.h"
-
-/*
- * set LoraWan_RGB to Active,the RGB active in loraWan
- * RGB red means sending;
- * RGB purple means joined done;
- * RGB blue means RxWindow1;
- * RGB yellow means RxWindow2;
- * RGB green means received done;
- */
+#include "Wire.h"
+#include "SHT2x.h"
 
 //Set these OTAA parameters to match your app/node in TTN
-static uint8_t devEui[] = { 0xAE, 0x2F, 0x57, 0x34, 0x4C, 0x8D, 0x2F, 0x8D };
-static uint8_t appEui[] = { 0xC2, 0xC0, 0xF5, 0xEC, 0x63, 0x4C, 0x3A, 0x71 };
-static uint8_t appKey[] = { 0xC7, 0xF1, 0x47, 0x29, 0xCD, 0x99, 0xC2, 0x73, 0xDF, 0xB4, 0x59, 0x27, 0x17, 0xEA, 0x96, 0x02 };
+uint8_t devEui[] = { 0xAE, 0x2F, 0x57, 0x34, 0x4C, 0x8D, 0x2F, 0x8D };
+uint8_t appEui[] = { 0xC2, 0xC0, 0xF5, 0xEC, 0x63, 0x4C, 0x3A, 0x71 };
+uint8_t appKey[] = { 0xC7, 0xF1, 0x47, 0x29, 0xCD, 0x99, 0xC2, 0x73, 0xDF, 0xB4, 0x59, 0x27, 0x17, 0xEA, 0x96, 0x02 };
 
 uint16_t userChannelsMask[6]={ 0x00FF,0x0000,0x0000,0x0000,0x0000,0x0000 };
 
-static uint8_t counter=0;
+static uint8_t Battery=0;
+static uint8_t temp=0;
+static uint8_t hum=0;
+static char LoRaData;
 
-///////////////////////////////////////////////////
-//Some utilities for going into low power mode
 TimerEvent_t sleepTimer;
-//Records whether our sleep/low power timer expired
 bool sleepTimerExpired;
+
+SHT2x sht;
 
 static void wakeUp()
 {
@@ -53,14 +37,9 @@ static void lowPowerSleep(uint32_t sleeptime)
   TimerStop( &sleepTimer );
 }
 
-///////////////////////////////////////////////////
 void setup() {
 	Serial.begin(115200);
 
-  if (ACTIVE_REGION==LORAMAC_REGION_AU915) {
-    //TTN uses sub-band 2 in AU915
-    LoRaWAN.setSubBand2();
-  }
  
   LoRaWAN.begin(LORAWAN_CLASS, ACTIVE_REGION);
   
@@ -80,36 +59,33 @@ void setup() {
       break;
     }
   }
+  sht.begin();
+  uint8_t stat = sht.getStatus();
+  Serial.print(stat, HEX);
+  
 }
 
-///////////////////////////////////////////////////
 void loop()
 {
-  //Counter is just some dummy data we send for the example
-  counter++; 
-  
-  //In this demo we use a timer to go into low power mode to kill some time.
-  //You might be collecting data or doing something more interesting instead.
-  lowPowerSleep(120000);  
 
-  //Now send the data. The parameters are "data size, data pointer, port, request ack"
-  Serial.printf("\nSending packet with counter=%d\n", counter);
-  //Here we send confirmed packed (ACK requested) only for the first five (remember there is a fair use policy)
-  bool requestack=counter<5?true:false;
-  if (LoRaWAN.send(1, &counter, 1, requestack)) {
+  Battery = getBatteryVoltage();
+  Serial.print("Battery voltage (mv):");
+  Serial.println(Battery);
+
+  sht.read();
+  Serial.print("\t");
+  Serial.print(sht.getTemperature(), 1);
+  Serial.print("\t");
+  Serial.println(sht.getHumidity(), 1);
+
+
+  LoRaData = char(getBatteryVoltage()) + char(sht.getTemperature()) + char(sht.getHumidity());
+  if (LoRaWAN.send(1, &Battery, 1, false)) {
     Serial.println("Send OK");
   } else {
     Serial.println("Send FAILED");
   }
-}
 
-///////////////////////////////////////////////////
-//Example of handling downlink data
-void downLinkDataHandle(McpsIndication_t *mcpsIndication)
-{
-  Serial.printf("Received downlink: %s, RXSIZE %d, PORT %d, DATA: ",mcpsIndication->RxSlot?"RXWIN2":"RXWIN1",mcpsIndication->BufferSize,mcpsIndication->Port);
-  for(uint8_t i=0;i<mcpsIndication->BufferSize;i++) {
-    Serial.printf("%02X",mcpsIndication->Buffer[i]);
-  }
-  Serial.println();
+
+  lowPowerSleep(300000);      
 }

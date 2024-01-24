@@ -1,6 +1,3 @@
-void TaskBlink1( void *pvParameters );
-void TaskBlink2( void *pvParameters );
-void TaskBlink3( void *pvParameters );
 
 
 void setup() {
