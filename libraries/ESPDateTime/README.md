@@ -2,7 +2,7 @@
 
 This library provides a simple class `DateTimeClass` for sync system timestamp vis ntp and a struct `DateFormatter` to format date time to string, works on **ESP8266** and **ESP32** platform.
 
-Current Version: **v0.2.0** [![Build Status](https://travis-ci.org/mcxiaoke/ESPDateTime.svg?branch=master)](https://travis-ci.org/mcxiaoke/ESPDateTime)
+Current Version: **v1.0.4** [![Build Status](https://travis-ci.org/mcxiaoke/ESPDateTime.svg?branch=master)](https://travis-ci.org/mcxiaoke/ESPDateTime)
 
 # Install
 
@@ -16,17 +16,15 @@ Or you can install using platformio cli:
 # Using library Id
  platformio lib install 6871
 # or Using library Name
- platformio lib install "ESPDateTime"
+ pio lib install "mcxiaoke/ESPDateTime@^1.0.4"
 ```
 
 Add dependency to your `platformio.ini` file:
 
 ```ini
 lib_deps =
-     # Using library Id
-     6871
-     # or Using library Name
-     ESPDateTime
+     # Using library Name
+     mcxiaoke/ESPDateTime @ ^1.0.4
      # or You can use the latest git version
      https://github.com/mcxiaoke/ESPDateTime.git
 ```
@@ -44,9 +42,6 @@ Clone this repo or download source code at [release](https://github.com/mcxiaoke
 ## Include the Header
 
 ```cpp
-// if you just want to use DateTime:
-#include <DateTime.h>
-// or if you want to use DateTimeClass and TimeElapsed:
 #include <ESPDateTime.h>
 ```
 
@@ -54,14 +49,18 @@ Clone this repo or download source code at [release](https://github.com/mcxiaoke
 
 `DateTime` is a global [`DateTimeClass`](https://github.com/mcxiaoke/ESPDateTime/blob/master/src/DateTime.h#L58) object for use in your code.
 
+You can pick `TimeZone` name from here: [TZ.h](https://github.com/esp8266/Arduino/blob/master/cores/esp8266/TZ.h) or here: [DateTimeTZ.h](https://github.com/mcxiaoke/ESPDateTime/blob/master/src/DateTimeTZ.h)
+
 ```cpp
 void setupDateTime() {
   // setup this after wifi connected
   // you can use custom timeZone,server and timeout
-  // DateTime.setTimeZone(-4);
+  // DateTime.setTimeZone("CST-8");
   // DateTime.setServer("asia.pool.ntp.org");
   // DateTime.begin(15 * 1000);
-  DateTime.setTimeZone(8);
+  // from
+  /** changed from 0.2.x **/
+  DateTime.setTimeZone("CST-8");
   // this method config ntp and wait for time sync
   // default timeout is 10 seconds
   DateTime.begin(/* timeout param */);
@@ -80,15 +79,18 @@ You can use [`DateTime`](https://github.com/mcxiaoke/ESPDateTime/blob/master/src
 time_t  DateTime.now()
 // get current timestap in seconds
 time_t  DateTime.getTime()
-// get utc timestamp in seconds
-time_t  DateTime.utcTime()
 // get current timezone
-int     DateTime.getTimeZone()
+char*     DateTime.getTimeZone()
 // get formatted string of time
-String  DateTime.toString ()
-// format time to string, using strftime
+String  DateTime.toString()
+// get formatted string of utc time
+String  DateTime.toUTCString()
+// format local time to string, using strftime
 // http://www.cplusplus.com/reference/ctime/strftime/
-String DateTime.format(const char* fmt);
+String  DateTime.format(const char* fmt);
+// format utc time to string, using strftime
+// http://www.cplusplus.com/reference/ctime/strftime/
+String  DateTime.formatUTC(const char* fmt);
 ```
 
 ## Classes
@@ -108,7 +110,7 @@ See [API Reference](https://blog.mcxiaoke.com/ESPDateTime/).
 
 # License
 
-    Copyright 2019 github@mcxiaoke.com
+    Copyright 2019-2021 github@mcxiaoke.com
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

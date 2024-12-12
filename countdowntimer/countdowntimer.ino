@@ -8,12 +8,12 @@
 #include <Ticker.h>
 
 int strobePin = 13;  // D7 on the wemos D1 mini
-int dataPin = 4;    // D2 on the wemos D1 mini
+int dataPin = 4;     // D2 on the wemos D1 mini
 
 int clockPin = 0;   // D3 on the wemos D1 mini
-int setupPin = 15; // D8 on the wemos D1 mini
-int modePin = 12; // D6 on the wemos D1 mini
-// BUILTIN_LED = 2 // D4 on the wemos D1 mini, LOW for ON
+int setupPin = 15;  // D8 on the wemos D1 mini
+int modePin = 12;   // D6 on the wemos D1 mini
+// BUILTIN_LED = 2  // D4 on the wemos D1 mini, LOW for ON
 
 int calcYear,calcMonth,calcDay,calcHour,calcMinute,calcSecond,toDateDays,toDateHours,toDateMinutes,toDateSeconds,countDownDays,countDownHours,countDownMinutes,countDownSeconds,buttonState,lastButtonState = LOW ;
 

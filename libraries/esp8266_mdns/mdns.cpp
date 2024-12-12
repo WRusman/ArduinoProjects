@@ -17,8 +17,17 @@ void PrintHex(const unsigned char data) {
 }
 
 void MDns::startUdpMulticast(){
+#ifdef DEBUG_OUTPUT
   Serial.println("Initializing Multicast.");
+#endif
   Udp.beginMulticast(WiFi.localIP(), IPAddress(224, 0, 0, 251), MDNS_TARGET_PORT);
+}
+
+void MDns::begin() {
+#ifdef DEBUG_OUTPUT
+Serial.println("Called begin");
+#endif
+  this->startUdpMulticast();
 }
 
 bool MDns::loop() {
@@ -81,7 +90,7 @@ bool MDns::loop() {
           p_query_function_(&query);
         }
       }
-      if(buffer_pointer >= data_size){
+      if(buffer_pointer > data_size){
         return false;
       }
 #ifdef DEBUG_OUTPUT
@@ -98,7 +107,7 @@ bool MDns::loop() {
           p_answer_function_(&answer);
         }
       }
-      if(buffer_pointer >= data_size){
+      if(buffer_pointer > data_size){
         return false;
       }
 #ifdef DEBUG_OUTPUT
@@ -300,8 +309,9 @@ bool MDns::AddAnswer(const Answer& answer) {
 }
 
 void MDns::Send() const {
+#ifdef DEBUG_OUTPUT
   Serial.println("Sending UDP multicast packet");
-
+#endif
   Udp.begin(MDNS_SOURCE_PORT);
   Udp.beginPacketMulticast(IPAddress(224, 0, 0, 251), MDNS_TARGET_PORT, WiFi.localIP(), MDNS_TTL);
   Udp.write(data_buffer, data_size);
@@ -355,7 +365,7 @@ void MDns::Parse_Query(Query& query) {
     query.valid = false;
   }
 
-  if (buffer_pointer >= data_size) {
+  if (buffer_pointer > data_size) {
     // We've over-run the returned data.
     // Something has gone wrong receiving or parsing the data.
 #ifdef DEBUG_OUTPUT

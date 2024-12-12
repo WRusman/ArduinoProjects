@@ -15,7 +15,15 @@ static time_t validateTime(const time_t timeSecs) {
 
 String DateTimeParts::format(const char* fmt) const {
   char buf[64];
-  strftime(buf, sizeof(buf), fmt, _tm);
+  struct tm* t = localtime(&_ts);
+  strftime(buf, sizeof(buf), fmt, t);
+  return String(buf);
+}
+
+String DateTimeParts::formatUTC(const char* fmt) const {
+  char buf[64];
+  struct tm* t = gmtime(&_ts);
+  strftime(buf, sizeof(buf), fmt, t);
   return String(buf);
 }
 
@@ -23,58 +31,57 @@ String DateTimeParts::toString() const {
   return format(DateFormatter::ISO8601);
 }
 
-DateTimeParts DateTimeParts::from(const time_t timeSecs, const int timeZone) {
-  struct tm* time_info = localtime(&timeSecs);
-  return {timeSecs, timeZone, time_info};
+DateTimeParts DateTimeParts::from(const time_t timeSecs, const char* timeZone) {
+  return {timeSecs, timeZone};
 }
 
 DateTimeParts DateTimeParts::from(DateTimeClass* dateTime) {
   return from(dateTime->getTime(), dateTime->getTimeZone());
 }
 
-DateTimeClass::DateTimeClass(const time_t _timeSecs,
-                             const int _timeZone,
+DateTimeClass::DateTimeClass(const time_t _timeSecs, const char* _timeZone,
                              const char* _ntpServer)
     : bootTimeSecs(validateTime(_timeSecs)),
       timeZone(_timeZone),
-      ntpServer(_ntpServer),
+      ntpServer1(_ntpServer),
       ntpMode(bootTimeSecs == TIME_ZERO) {}
 
-bool DateTimeClass::setTimeZone(int _timeZone) {
-  if (_timeZone == timeZone) {
+bool DateTimeClass::setTimeZone(const char* _timeZone) {
+  if (strcmp(timeZone, _timeZone) == 0) {
     return false;
   }
+  timeZone = _timeZone;
 #ifdef ESP_DATE_TIME_DEBUG
-  Serial.printf("setTimeZone to %d\n", _timeZone);
+  Serial.printf("setTimeZone to %s\n", _timeZone);
 #endif
-  if (timeZone >= -11 || timeZone <= 13) {
-    timeZone = _timeZone;
-    return true;
-  }
-  return false;
+  return true;
 }
-void DateTimeClass::setServer(const char* _server) {
-  if (strcmp(_server, ntpServer) == 0) {
-    return;
-  }
+void DateTimeClass::setServer(const char* _server1, const char* _server2,
+                              const char* _server3) {
 #ifdef ESP_DATE_TIME_DEBUG
-  Serial.printf("setServer to %s\n", _server);
+  Serial.printf("setServer to %s,%s,%s\n", _server1, _server2, _server3);
 #endif
-  ntpServer = _server;
+  ntpServer1 = _server1;
+  ntpServer2 = _server2;
+  ntpServer3 = _server3;
 }
 
 bool DateTimeClass::forceUpdate(const unsigned int timeOutMs) {
 #ifdef ESP_DATE_TIME_DEBUG
-  Serial.printf("forceUpdate,timeZone:%d, server:%s, timeOut:%u\n", timeZone,
-                ntpServer, timeOutMs);
+  Serial.printf("forceUpdate,timeZone:%s, server:%s, timeOut:%u\n", timeZone,
+                ntpServer1, timeOutMs);
 #endif
-  // esp8266 not support time_zone, just add seconds
-  // so strftime %z always +0000
-  configTime(timeZone * 3600, 0, ntpServer, NTP_SERVER_2, NTP_SERVER_3);
+// esp8266 not support time_zone, just add seconds
+// so strftime %z always +0000
+#if defined(ESP8266)
+  configTime(timeZone, ntpServer1, ntpServer2, ntpServer3);
+#elif defined(ESP32)
+  configTzTime(timeZone, ntpServer1, ntpServer2, ntpServer3);
+#endif
   time_t now = time(nullptr);
   auto startMs = millis();
   unsigned long retryCount = 0;
-  while (now < SECS_START_POINT && (startMs + timeOutMs) > millis()) {
+  while (now < SECS_START_POINT && (millis() - startMs < timeOutMs)) {
     delay(50 + 50 * retryCount++);
     now = time(nullptr);
   }
@@ -84,6 +91,24 @@ bool DateTimeClass::forceUpdate(const unsigned int timeOutMs) {
   ntpMode = true;
   setTime(time(nullptr));
   return isTimeValid();
+}
+
+time_t DateTimeClass::ntpTime(const unsigned int timeOutMs) {
+#ifdef ESP_DATE_TIME_DEBUG
+  Serial.printf("ntpTime,timeZone:%s, server:%s, timeOut:%u\n", timeZone,
+                ntpServer1, timeOutMs);
+#endif
+  time_t now = time(nullptr);
+  auto startMs = millis();
+  unsigned long retryCount = 0;
+  while (millis() - startMs < timeOutMs) {
+    delay(50 + 50 * retryCount++);
+    now = time(nullptr);
+  }
+#ifdef ESP_DATE_TIME_DEBUG
+  Serial.printf("ntpTime,now:%ld\n", now);
+#endif
+  return now;
 }
 
 bool DateTimeClass::setTime(const time_t timeSecs, bool forceSet) {
@@ -97,12 +122,10 @@ bool DateTimeClass::setTime(const time_t timeSecs, bool forceSet) {
   return isTimeValid();
 }
 
-String DateTimeClass::format(const char* fmt) {
-  return getParts().format(fmt);
-}
+String DateTimeClass::format(const char* fmt) { return getParts().format(fmt); }
 
 String DateTimeClass::formatUTC(const char* fmt) {
-  return DateTimeParts::from(utcTime(), 0).format(fmt);
+  return getParts().formatUTC(fmt);
 }
 
 DateTimeClass DateTime;

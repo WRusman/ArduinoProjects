@@ -9,6 +9,9 @@
 #endif
 #include "gfxfont.h"
 
+#include <Adafruit_I2CDevice.h>
+#include <Adafruit_SPIDevice.h>
+
 /// A generic graphics superclass that can handle all sorts of drawing. At a
 /// minimum you can subclass and provide drawPixel(). At a maximum you can do a
 /// ton of overriding to optimize. Used for any/all Adafruit displays!
@@ -325,10 +328,9 @@ protected:
   bool getRawPixel(int16_t x, int16_t y) const;
   void drawFastRawVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
   void drawFastRawHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
+  uint8_t *buffer; ///< Raster data: no longer private, allow subclass access
 
 private:
-  uint8_t *buffer;
-
 #ifdef __AVR__
   // Bitmask tables of 0x80>>X and ~(0x80>>X), because X>>Y is slow on AVR
   static const uint8_t PROGMEM GFXsetBit[], GFXclrBit[];
@@ -357,9 +359,7 @@ protected:
   uint8_t getRawPixel(int16_t x, int16_t y) const;
   void drawFastRawVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
   void drawFastRawHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
-
-private:
-  uint8_t *buffer;
+  uint8_t *buffer; ///< Raster data: no longer private, allow subclass access
 };
 
 ///  A GFX 16-bit canvas context for graphics
@@ -385,9 +385,7 @@ protected:
   uint16_t getRawPixel(int16_t x, int16_t y) const;
   void drawFastRawVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
   void drawFastRawHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
-
-private:
-  uint16_t *buffer;
+  uint16_t *buffer; ///< Raster data: no longer private, allow subclass access
 };
 
 #endif // _ADAFRUIT_GFX_H

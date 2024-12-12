@@ -33,7 +33,11 @@
  * @param MILLIS set the resolution to millis, for longer cycles over 70 minutes
  *
  */
-enum resolution_t {MICROS, MILLIS, MICROS_MICROS};
+enum resolution_t {
+	MICROS,
+	MILLIS,
+	MICROS_MICROS
+	};
 
 /** Ticker status
  *
@@ -42,9 +46,18 @@ enum resolution_t {MICROS, MILLIS, MICROS_MICROS};
  * @param PAUSED ticker is paused
  *
  */
-enum status_t {STOPPED, RUNNING, PAUSED};
+enum status_t {
+	STOPPED,
+	RUNNING,
+	PAUSED};
 
+#if defined(__arm__) || defined(ESP8266) || defined(ESP32)
+#include <functional>
+using fptr = std::function<void()>;
+#else
 typedef void (*fptr)();
+#endif
+
 
 class Ticker {
 
@@ -97,12 +110,26 @@ public:
 	 */
 	void interval(uint32_t timer);
 
+	/**
+	 * @brief get the interval time
+	 * 
+	 * @returns the interval time
+	 */
+	uint32_t interval();
+
 	/** actual ellapsed time
 	 *
 	 * @returns the elapsed time after the last tick
 	 *
 	 */
 	uint32_t elapsed();
+
+	/** time remaining to the next tick
+	 *
+	 * @returns the remaining time to the next tick in ms or us depending from mode
+	 *
+	 */
+	uint32_t remaining();
 
 	/** get the state of the ticker
 	 *

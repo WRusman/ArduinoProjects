@@ -20,7 +20,8 @@
 #ifndef _ADAFRUIT_SPITFT_H_
 #define _ADAFRUIT_SPITFT_H_
 
-#if !defined(__AVR_ATtiny85__) // Not for ATtiny, at all
+// Not for ATtiny, at all
+#if !defined(__AVR_ATtiny85__) && !defined(__AVR_ATtiny84__)
 
 #include "Adafruit_GFX.h"
 #include <SPI.h>
@@ -71,7 +72,8 @@ typedef volatile ADAGFX_PORT_t *PORTreg_t; ///< PORT register type
 #define DEFAULT_SPI_FREQ 16000000L ///< Hardware SPI default speed
 #endif
 
-#if defined(ADAFRUIT_PYPORTAL) || defined(ADAFRUIT_PYBADGE_M4_EXPRESS) ||      \
+#if defined(ADAFRUIT_PYPORTAL) || defined(ADAFRUIT_PYPORTAL_M4_TITANO) ||      \
+    defined(ADAFRUIT_PYBADGE_M4_EXPRESS) ||                                    \
     defined(ADAFRUIT_PYGAMER_M4_EXPRESS) ||                                    \
     defined(ADAFRUIT_MONSTER_M4SK_EXPRESS) || defined(NRF52_SERIES) ||         \
     defined(ADAFRUIT_CIRCUITPLAYGROUND_M0)
@@ -154,6 +156,10 @@ public:
                   int8_t wr, int8_t dc, int8_t cs = -1, int8_t rst = -1,
                   int8_t rd = -1);
 
+  // DESTRUCTOR ----------------------------------------------------------
+
+  ~Adafruit_SPITFT(){};
+
   // CLASS MEMBER FUNCTIONS ----------------------------------------------
 
   // These first two functions MUST be declared by subclasses:
@@ -227,6 +233,10 @@ public:
   // Another new function, companion to the new non-blocking
   // writePixels() variant.
   void dmaWait(void);
+  // Used by writePixels() in some situations, but might have rare need in
+  // user code, so it's public...
+  bool dmaBusy(void) const; // true if DMA is used and busy, false otherwise
+  void swapBytes(uint16_t *src, uint32_t len, uint16_t *dest = NULL);
 
   // These functions are similar to the 'write' functions above, but with
   // a chip-select and/or SPI transaction built-in. They're typically used
@@ -517,5 +527,5 @@ protected:
   uint32_t _freq = 0; ///< Dummy var to keep subclasses happy
 };
 
-#endif // end __AVR_ATtiny85__
+#endif // end __AVR_ATtiny85__ __AVR_ATtiny84__
 #endif // end _ADAFRUIT_SPITFT_H_
