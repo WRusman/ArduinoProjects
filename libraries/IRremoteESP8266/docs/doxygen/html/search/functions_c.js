@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['mark_0',['mark',['../classIRsend.html#a7399389d40bfe24bc062ffca88fc3780',1,'IRsend']]],
+  ['markassent_1',['markAsSent',['../classIRac.html#ad0e45b13f477e29823b8c138704536c4',1,'IRac']]],
+  ['match_2',['match',['../classIRrecv.html#a8bc218dae714ab189a3da4fff269cdaa',1,'IRrecv']]],
+  ['matchatleast_3',['matchAtLeast',['../classIRrecv.html#ae7bfd4ff689c7563c65c4e6e8c58187a',1,'IRrecv']]],
+  ['matchbytes_4',['matchBytes',['../classIRrecv.html#acb74ac6a369fdf2250d6fc4f9594d670',1,'IRrecv']]],
+  ['matchdata_5',['matchData',['../classIRrecv.html#a4e28064f20a1aa7fc8a9b89b33bad707',1,'IRrecv']]],
+  ['matchgeneric_6',['matchgeneric',['../classIRrecv.html#aaad311cb4287aad0061f44bf495a1b49',1,'IRrecv::matchGeneric(atomic_uint16_t *data_ptr, uint64_t *result_ptr, const uint16_t remaining, const uint16_t nbits, const uint16_t hdrmark, const uint32_t hdrspace, const uint16_t onemark, const uint32_t onespace, const uint16_t zeromark, const uint32_t zerospace, const uint16_t footermark, const uint32_t footerspace, const bool atleast=false, const uint8_t tolerance=kUseDefTol, const int16_t excess=kMarkExcess, const bool MSBfirst=true)'],['../classIRrecv.html#ac914b3b4c983556920b855942cb9ecf5',1,'IRrecv::matchGeneric(atomic_uint16_t *data_ptr, uint8_t *result_ptr, const uint16_t remaining, const uint16_t nbits, const uint16_t hdrmark, const uint32_t hdrspace, const uint16_t onemark, const uint32_t onespace, const uint16_t zeromark, const uint32_t zerospace, const uint16_t footermark, const uint32_t footerspace, const bool atleast=false, const uint8_t tolerance=kUseDefTol, const int16_t excess=kMarkExcess, const bool MSBfirst=true)']]],
+  ['matchgenericconstbittime_7',['matchGenericConstBitTime',['../classIRrecv.html#ac99b3abffe456f26b065b67bf20302ec',1,'IRrecv']]],
+  ['matchmanchester_8',['matchManchester',['../classIRrecv.html#a395adb4df0e86f544068f01d5e0f00b8',1,'IRrecv']]],
+  ['matchmanchesterdata_9',['matchManchesterData',['../classIRrecv.html#ae43ee146ff1c241c3849bf979f5ff7b9',1,'IRrecv']]],
+  ['matchmark_10',['matchMark',['../classIRrecv.html#ae78ef12b8194db5d3cb5a2605d29830d',1,'IRrecv']]],
+  ['matchmarkrange_11',['matchMarkRange',['../classIRrecv.html#adf11286f0ef5e8984396b5f6331db87e',1,'IRrecv']]],
+  ['matchspace_12',['matchSpace',['../classIRrecv.html#a9fd363e8b2edee2ed3c473349ecc58fc',1,'IRrecv']]],
+  ['matchspacerange_13',['matchSpaceRange',['../classIRrecv.html#a2200a9c1064497838506eb278791bb03',1,'IRrecv']]],
+  ['midea_14',['midea',['../classIRac.html#a6ae2cab5bfb326ea0297b4690a82e9d2',1,'IRac']]],
+  ['minrepeats_15',['minRepeats',['../classIRsend.html#ae02772f34180163861b7e4eb3520db2a',1,'IRsend']]],
+  ['minstostring_16',['minsToString',['../namespaceirutils.html#aebab40a2c69624adc1a5a8a6db72952f',1,'irutils']]],
+  ['mirage_17',['mirage',['../classIRac.html#ad54a1ee83ec798bd2ed22fe55be4da0d',1,'IRac']]],
+  ['mitsubishi_18',['mitsubishi',['../classIRac.html#aaa60bcac75dc5dda40c78f8c227b19a3',1,'IRac']]],
+  ['mitsubishi112_19',['mitsubishi112',['../classIRac.html#a2438b6e4403d5952adb299083e038e10',1,'IRac']]],
+  ['mitsubishi136_20',['mitsubishi136',['../classIRac.html#aa3033eb835cf3cd313ee2c2f38357e8e',1,'IRac']]],
+  ['mitsubishiheavy152_21',['mitsubishiHeavy152',['../classIRac.html#a635b89320d878c1e3f270d7146cb9b00',1,'IRac']]],
+  ['mitsubishiheavy88_22',['mitsubishiHeavy88',['../classIRac.html#af6c9084c5e902f98a03ad0eaf3b9448e',1,'IRac']]],
+  ['modeltostr_23',['modelToStr',['../namespaceirutils.html#ae89b70ce66617a8707c1951eadbc6fbd',1,'irutils']]],
+  ['mstostring_24',['msToString',['../namespaceirutils.html#a9c59c8dd886c283fdb8adc9082c6890a',1,'irutils']]]
+];

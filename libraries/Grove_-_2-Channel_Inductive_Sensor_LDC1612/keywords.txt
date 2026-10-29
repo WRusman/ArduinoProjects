@@ -1,0 +1,21 @@
+  
+#######################################
+# Syntax Coloring Map For Seeed Inductive Sensor LDC1612
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+KEYWORD1    LDC1612
+
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+KEYWORD2    init
+KEYWORD2    read_sensor_infomation
+KEYWORD2    single_channel_config
+KEYWORD2    LDC1612_mutiple_channel_config
+#######################################
+# Constants (LITERAL1)
+#######################################

@@ -1,0 +1,19 @@
+###########################################
+# Syntax Coloring Map For EmSevenSegment
+###########################################
+
+###########################################
+# Datatypes (KEYWORD1)
+###########################################
+
+EmSevenSegment	KEYWORD1
+
+###########################################
+# Methods and Functions (KEYWORD2)
+###########################################
+
+set	KEYWORD2
+blink	KEYWORD2
+printHex	KEYWORD2
+print	KEYWORD2
+clear	KEYWORD2

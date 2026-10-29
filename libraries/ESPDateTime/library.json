@@ -1,0 +1,20 @@
+{
+  "name": "ESPDateTime",
+  "keywords": "esp8266,esp32,arduino,utils,datetime,date,time,formatter,ntp,device,display,rtc",
+  "description": "Date Time Functions and Classes for ESP8266 and ESP32",
+  "homepage": "https://github.com/mcxiaoke/ESPDateTime",
+  "authors": {
+    "name": "Zhang Xiaoke",
+    "email": "github@mcxiaoke.com",
+    "url": "https://github.com/mcxiaoke",
+    "maintainer": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcxiaoke/ESPDateTime.git"
+  },
+  "version": "1.0.4",
+  "license": "Apache-2.0",
+  "frameworks": "arduino",
+  "platforms": ["espressif8266", "espressif32"]
+}
